@@ -116,34 +116,31 @@ export const getImagesFromRepo = async (repo: string): Promise<BookEntry[]> => {
     }
 };
 
-export const uploadImage = async (
+export const uploadFile = async (
     repo: string,
-    file: File,
+    file: File | string,
+    path: string,
     token: string
 ): Promise<void> => {
     if (!token) {
         throw new Error("Token is required for upload");
     }
 
-    // Use the commit API for uploading
-    // POST /api/repos/{repo_id}/upload/{path} is deprecated or specific.
-    // Better to use the pre-signed URL flow or the commit API.
-    // For simplicity in browser, let's try the direct upload via the commit API if possible, 
-    // or the simple upload endpoint if it supports CORS.
+    let content: string;
+    let encoding: string;
 
-    // Actually, @huggingface/hub's uploadFile is great but might be heavy.
-    // Let's use a direct fetch to the commit API which is robust.
-    // Endpoint: https://huggingface.co/api/datasets/<repo>/commit/<revision>
-    // Or simpler: POST https://huggingface.co/api/datasets/<repo>/upload/<path> (if available)
-
-    // Let's try the standard LFS upload flow or just a simple commit.
-    // Simplest for single file: POST to https://huggingface.co/api/datasets/<repo>/commit/main
-
-    const path = file.name;
-    const buffer = await file.arrayBuffer();
-    const base64 = btoa(
-        new Uint8Array(buffer).reduce((data, byte) => data + String.fromCharCode(byte), '')
-    );
+    if (typeof file === 'string') {
+        // Text content (e.g., JSON)
+        content = btoa(unescape(encodeURIComponent(file))); // Handle UTF-8 characters
+        encoding = "base64";
+    } else {
+        // Binary content (File)
+        const buffer = await file.arrayBuffer();
+        content = btoa(
+            new Uint8Array(buffer).reduce((data, byte) => data + String.fromCharCode(byte), '')
+        );
+        encoding = "base64";
+    }
 
     const isDataset = repo.startsWith("datasets/");
     const repoId = isDataset ? repo.replace("datasets/", "") : repo;
@@ -151,13 +148,13 @@ export const uploadImage = async (
 
     // Construct the commit payload
     const payload = {
-        summary: `Upload ${path} from Gal's Bookshelf 💖`,
-        description: "Uploaded via Gal's Bookshelf App",
+        summary: `Upload ${path} from Manga Stack 💖`,
+        description: "Uploaded via Manga Stack App",
         files: [
             {
                 path: path,
-                encoding: "base64",
-                content: base64,
+                encoding: encoding,
+                content: content,
             },
         ],
     };

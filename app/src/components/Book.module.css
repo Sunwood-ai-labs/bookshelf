@@ -1,0 +1,75 @@
+.bookContainer {
+  perspective: 1000px;
+  width: 150px;
+  height: 220px;
+  margin: 10px;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+}
+
+.bookContainer:hover {
+  transform: translateY(-10px) scale(1.05);
+  z-index: 10;
+}
+
+.book {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.5s;
+  box-shadow: 0 10px 20px rgba(255, 105, 180, 0.3);
+  border-radius: 5px 15px 15px 5px;
+}
+
+.cover {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  border-radius: 5px 15px 15px 5px;
+  overflow: hidden;
+  background: #fff;
+  border: 2px solid #ff69b4;
+}
+
+.cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.spine {
+  position: absolute;
+  width: 20px;
+  height: 100%;
+  left: 0;
+  top: 0;
+  transform: rotateY(90deg) translateZ(-10px);
+  background: linear-gradient(to right, #ff1493, #ff69b4);
+  border-radius: 2px;
+}
+
+/* Glitter effect overlay */
+.glitter {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: url('data:image/svg+xml;utf8,<svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="1" fill="white" opacity="0.5"/></svg>');
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+}
+
+.bookContainer:hover .glitter {
+  opacity: 1;
+  animation: sparkle 1s infinite;
+}
+
+@keyframes sparkle {
+  0% { opacity: 0.3; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.2); }
+  100% { opacity: 0.3; transform: scale(1); }
+}

@@ -4,11 +4,16 @@ import { BookEntry } from '../services/huggingface';
 
 interface BookProps {
     book: BookEntry;
+    onClick: (book: BookEntry) => void;
 }
 
-export const Book: React.FC<BookProps> = ({ book }) => {
+export const Book: React.FC<BookProps> = ({ book, onClick }) => {
     return (
-        <div className={styles.bookContainer} title={book.title}>
+        <div
+            className={styles.bookContainer}
+            title={book.title}
+            onClick={() => onClick(book)}
+        >
             <div className={styles.book}>
                 <div className={styles.spine}></div>
                 <div className={styles.cover}>

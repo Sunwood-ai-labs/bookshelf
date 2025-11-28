@@ -2,11 +2,14 @@ import React, { useState, useCallback } from 'react';
 import { useBookshelf } from '../hooks/useBookshelf';
 import { Book } from './Book';
 import { UploadBook } from './UploadBook';
+import { BookReader } from './BookReader';
+import { BookEntry } from '../services/huggingface';
 import styles from './Bookshelf.module.css';
 
 export const Bookshelf: React.FC = () => {
     // Default repo: datasets/MakiAi/bookshelf-db
     const [repo, setRepo] = useState<string>('datasets/MakiAi/bookshelf-db');
+    const [selectedBook, setSelectedBook] = useState<BookEntry | null>(null);
 
     // We modify useBookshelf to accept a dependency or expose a refresh method, 
     // but for now let's just force re-render by toggling a key or similar if we modify the hook.
@@ -28,6 +31,14 @@ export const Bookshelf: React.FC = () => {
     const handleUploadSuccess = useCallback(() => {
         refresh();
     }, [refresh]);
+
+    const handleBookClick = (book: BookEntry) => {
+        setSelectedBook(book);
+    };
+
+    const handleCloseReader = () => {
+        setSelectedBook(null);
+    };
 
     return (
         <div className={styles.shelfContainer}>
@@ -57,7 +68,7 @@ export const Bookshelf: React.FC = () => {
                         <UploadBook repo={repo} onUploadSuccess={handleUploadSuccess} />
 
                         {books.map((book) => (
-                            <Book key={book.title} book={book} />
+                            <Book key={book.title} book={book} onClick={handleBookClick} />
                         ))}
 
                         {books.length === 0 && (
@@ -67,6 +78,10 @@ export const Bookshelf: React.FC = () => {
                         )}
                     </div>
                 </div>
+            )}
+
+            {selectedBook && (
+                <BookReader book={selectedBook} onClose={handleCloseReader} />
             )}
         </div>
     );

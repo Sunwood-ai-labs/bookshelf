@@ -39,20 +39,25 @@ export const BookReader: React.FC<BookReaderProps> = ({ book, onClose }) => {
             // Simple scroll navigation
             const container = document.querySelector(`.${styles.readerContainer}`);
             if (container) {
+                const isRtl = book.metadata?.direction === 'rtl';
+                const directionMultiplier = isRtl ? -1 : 1;
+
                 if (e.key === 'ArrowRight') {
-                    container.scrollBy({ left: window.innerWidth, behavior: 'smooth' });
+                    container.scrollBy({ left: window.innerWidth * directionMultiplier, behavior: 'smooth' });
                 } else if (e.key === 'ArrowLeft') {
-                    container.scrollBy({ left: -window.innerWidth, behavior: 'smooth' });
+                    container.scrollBy({ left: -window.innerWidth * directionMultiplier, behavior: 'smooth' });
                 }
             }
         };
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [onClose]);
+    }, [onClose, book.metadata]);
 
     const handleMouseMove = () => {
         resetControlsTimeout();
     };
+
+    const isRtl = book.metadata?.direction === 'rtl';
 
     return (
         <div className={styles.overlay} onMouseMove={handleMouseMove} onClick={resetControlsTimeout}>
@@ -65,7 +70,10 @@ export const BookReader: React.FC<BookReaderProps> = ({ book, onClose }) => {
             </header>
 
             <div className={styles.content}>
-                <div className={styles.readerContainer}>
+                <div
+                    className={styles.readerContainer}
+                    style={{ flexDirection: isRtl ? 'row-reverse' : 'row' }}
+                >
                     {book.pages.map((page, index) => (
                         <div key={page.path} className={styles.page}>
                             <img src={page.url} alt={`Page ${index + 1}`} loading="lazy" />

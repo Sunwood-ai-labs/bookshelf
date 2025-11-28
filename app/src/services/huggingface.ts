@@ -5,89 +5,113 @@ export interface HFFile {
     url: string;
 }
 
+export interface BookMetadata {
+    title?: string;
+    author?: string;
+    description?: string;
+    tags?: string[];
+    direction?: 'ltr' | 'rtl';
+    cover?: string;
+}
+
 export interface BookEntry {
     title: string;
     cover: HFFile;
     pages: HFFile[];
+    metadata?: BookMetadata;
 }
+
+const isImage = (path: string): boolean => {
+    return /\.(jpg|jpeg|png|gif|webp)$/i.test(path);
+};
 
 export const getImagesFromRepo = async (repo: string): Promise<BookEntry[]> => {
     try {
-        // Note: This works for public repositories. For private ones, we'd need a token.
-        // The iterator returns async results
+        // listFiles returns an AsyncGenerator
         const files: HFFile[] = [];
         for await (const file of listFiles({ repo, recursive: true })) {
-            if (file.type === "file" && /\.(jpg|jpeg|png|gif|webp)$/i.test(file.path)) {
-                // Construct the raw URL for the image
-                // Format: https://huggingface.co/datasets/<repo>/resolve/main/<path>
-                // or https://huggingface.co/<repo>/resolve/main/<path> for models
-                // We'll assume datasets for now as it's more common for image storage, but handle both if needed.
-                // Actually, listFiles returns 'repo' as part of the input, but let's construct a direct URL.
-
-                // A safer way is to use the hub's utility or just construct it manually.
-                // Let's assume dataset for the "bookshelf" use case usually.
-                // But to be generic, we might check if it starts with "datasets/"
-
-                const baseUrl = repo.startsWith("datasets/")
-                    ? `https://huggingface.co/${repo}/resolve/main/${file.path}`
-                    : `https://huggingface.co/${repo}/resolve/main/${file.path}`;
-
+            if (file.type === 'file') {
                 files.push({
                     path: file.path,
-                    url: baseUrl
+                    url: `https://huggingface.co/datasets/${repo}/resolve/main/${file.path}`
                 });
             }
         }
 
-        // Group by folder
-        const booksMap = new Map<string, HFFile[]>();
-        const rootFiles: HFFile[] = [];
+        const folderMap = new Map<string, HFFile[]>();
+        const metadataMap = new Map<string, string>(); // Map folderName to metadata.json path
 
         files.forEach(file => {
             const parts = file.path.split('/');
             if (parts.length > 1) {
-                // It's in a folder
-                const folderName = parts[0];
-                if (!booksMap.has(folderName)) {
-                    booksMap.set(folderName, []);
+                const folderName = parts[0]; // Top level folder as book name
+
+                if (file.path.endsWith('metadata.json')) {
+                    metadataMap.set(folderName, file.path);
+                } else if (isImage(file.path)) {
+                    const images = folderMap.get(folderName) || [];
+                    // Construct direct URL
+                    // repo already contains "datasets/" prefix if applicable
+                    file.url = `https://huggingface.co/${repo}/resolve/main/${file.path}`;
+                    images.push(file);
+                    folderMap.set(folderName, images);
                 }
-                booksMap.get(folderName)?.push(file);
-            } else {
-                // Root file
-                rootFiles.push(file);
+            } else if (isImage(file.path)) {
+                // Root files - group in "Misc"
+                const folderName = "Misc";
+                const images = folderMap.get(folderName) || [];
+                file.url = `https://huggingface.co/${repo}/resolve/main/${file.path}`;
+                images.push(file);
+                folderMap.set(folderName, images);
             }
         });
 
         const books: BookEntry[] = [];
 
-        // Convert map to BookEntry array
-        booksMap.forEach((pages, title) => {
-            // Sort pages by name to ensure consistent order
-            pages.sort((a, b) => a.path.localeCompare(b.path));
+        // Process each folder
+        for (const [title, pages] of folderMap.entries()) {
+            if (pages.length > 0) {
+                // Sort pages by path to ensure order
+                pages.sort((a, b) => a.path.localeCompare(b.path));
 
-            // Use the first image as cover
-            const cover = pages[0];
+                let metadata: BookMetadata | undefined;
+                const metadataPath = metadataMap.get(title);
 
-            books.push({
-                title,
-                cover,
-                pages
-            });
-        });
+                if (metadataPath) {
+                    try {
+                        // Use 'raw' instead of 'resolve' for metadata to avoid CORS issues with redirects
+                        // repo already contains "datasets/" prefix
+                        const metaUrl = `https://huggingface.co/${repo}/raw/main/${metadataPath}`;
+                        const metaRes = await fetch(metaUrl);
+                        if (metaRes.ok) {
+                            metadata = await metaRes.json();
+                        }
+                    } catch (e) {
+                        console.warn(`Failed to fetch metadata for ${title}`, e);
+                    }
+                }
 
-        // Handle root files if any (treat as single-page books or Misc?)
-        // Let's treat them as individual books for now to not lose them
-        rootFiles.forEach(file => {
-            books.push({
-                title: file.path, // Use filename as title
-                cover: file,
-                pages: [file]
-            });
-        });
+                // Determine cover
+                let cover = pages[0];
+                if (metadata?.cover) {
+                    const coverFile = pages.find(p => p.path.endsWith(metadata!.cover!));
+                    if (coverFile) {
+                        cover = coverFile;
+                    }
+                }
+
+                books.push({
+                    title: metadata?.title || title,
+                    cover: cover,
+                    pages: pages,
+                    metadata: metadata
+                });
+            }
+        }
 
         return books;
     } catch (error) {
-        console.error("Error fetching from HF:", error);
+        console.error('Error fetching from HF:', error);
         throw error;
     }
 };

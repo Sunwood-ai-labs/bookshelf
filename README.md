@@ -1,308 +1,97 @@
+# 📚 Bookshelf — 積読も映える、最強のマンガリーダー ✨
+
+> 「ただのフォルダが、あたしの本棚になる。」
+> ギャルエンジニア精神で爆速開発中！💅🚀
+
 <div align="center">
 
-![Image](https://raw.githubusercontent.com/Sunwood-ai-labsII/gemini-actions-lab/refs/heads/main/docs/gemini-actions-labs.png)
-
-
-# Gemini Actions Lab
-
-<a href="./README.md"><img src="https://img.shields.io/badge/English-Readme-blue?style=for-the-badge&logo=github&logoColor=white" alt="English" /></a>
-<a href="./README.ja.md"><img src="https://img.shields.io/badge/日本語-Readme-red?style=for-the-badge&logo=github&logoColor=white" alt="日本語" /></a>
-<img src="https://img.shields.io/badge/GitHub%20Actions-AI-blue?style=for-the-badge&logo=github-actions&logoColor=white" alt="GitHub Actions" />
-<img src="https://img.shields.io/badge/Gemini-AI-4285F4?style=for-the-badge&logo=google-gemini&logoColor=white" alt="Gemini" />
-[![PyPI](https://img.shields.io/pypi/v/gemini-actions-lab-cli?style=for-the-badge)](https://pypi.org/project/gemini-actions-lab-cli/)
-
-[![💬 Gemini CLI](https://github.com/Sunwood-ai-labsII/gemini-actions-lab/actions/workflows/gemini-cli.yml/badge.svg)](https://github.com/Sunwood-ai-labsII/gemini-actions-lab/actions/workflows/gemini-cli.yml)
-
+![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
+![Vite](https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)
+![Gal Engineer](https://img.shields.io/badge/Gal%20Engineer-Approved-ff69b4?style=for-the-badge)
 
 </div>
 
 ---
 
-## 📖 概要
+## 📖 概要 (About)
 
-このリポジトリは、GoogleのGemini AIをGitHub Actionsと統合するための実験室およびショーケースとして機能します。生成AIの力を利用して、さまざまなリポジトリ管理タスクを自動化する方法を示します。
+**Bookshelf** は、ローカルのマンガや書籍データを「置くだけ」で爆盛れ本棚に変身させるWebアプリだよ〜！💖
 
-### 🎯 主な機能
-- **AIによる自動化**: Geminiを活用して、Issueのトリアージ、プルリクエストのレビューなどのタスクを処理します。
-- **CLIライクな対話**: Issueのコメントから直接AIアシスタントと対話します。
-- **拡張可能なワークフロー**: 独自のプロジェクトに合わせてワークフローを簡単に適応およびカスタマイズできます。
+「整理とかマジめんどい」って？ それな！
+だから **Folder-as-Book** 構造を採用。フォルダ名がそのままタイトルに、中の画像がそのままページになるから、管理コストは実質ゼロ！
 
----
-
-## 🤖 ワークフロー概要
-
-![](https://raw.githubusercontent.com/Sunwood-ai-labsII/gemini-actions-lab/refs/heads/main/docs/gal-architecture.png)
-
-このリポジトリには、以下のGitHub Actionsワークフローが含まれています（詳細は [.github/workflows/architecture.md](.github/workflows/architecture.md) を参照）：
-
-- `gemini-cli.yml`: 英語CLI。Issue/PR/コメント/手動でAIコマンドを実行
-- `gemini-jp-cli.yml`: 日本語CLI。Issue/PR/コメント/手動でAIコマンドを実行
-- `gemini-pr-review.yml`: PRレビュー自動化（MCP GitHubサーバー経由でコメント）
-- `gemini-issue-automated-triage.yml`: 新規/更新Issueの自動トリアージ
-- `gemini-issue-scheduled-triage.yml`: 定期スキャンで未トリアージIssueを一括処理
-- `imagen4-issue-trigger-and-commit.yml`: イシュー由来の画像生成→コミット
-- `imagen4-generate-and-commit.yml`: 手動/ディスパッチで画像生成→コミット
-- `gemini-release-notes.yml`: リリース画像生成とリリースノートの自動作成
-- `static-site.yml`: リポジトリ内容をGitHub Pagesに公開
-- `sync-to-report-gh.yml`: 旧テンプレ（現状は参考用）
-
-ワークフローの構成・相互関係・実装詳細は、[.github/workflows/architecture.md](.github/workflows/architecture.md) に集約しています。
-
-### 🚀 リモートワークフロー（新機能）
-
-複数のリポジトリでワークフローを使いたい場合、**リモートワークフローシステム**を使うとメンテナンスが超楽になるよ〜✨
-
-**メリット:**
-- ✅ Pythonスクリプトのコピー不要（リモートから自動取得）
-- ✅ スクリプトの更新は1箇所でOK
-- ✅ メンテナンスコスト90%削減
-
-**使い方:**
-
-```bash
-# ワークフローファイルをコピー（スクリプトは不要！）
-curl -o .github/workflows/pr-review-kozaki.yml \
-  https://raw.githubusercontent.com/Sunwood-ai-labsII/gemini-actions-lab/main/.github/workflows_remote/pr-review-kozaki-remote.yml
-```
-
-詳細は [.github/workflows_remote/README.md](.github/workflows_remote/README.md) を参照！
+さらに **Manga Stack UI** で、積読（つんどく）すらもインテリアにしちゃうよ📚✨
 
 ---
 
-## 🏗️ アーキテクチャ
-アーキテクチャ図やワークフローの詳細な説明は、[.github/workflows/architecture.md](.github/workflows/architecture.md) を参照してください。
+## 💖 推しポイント (Features)
 
-### 💬 Discord Issue Bot（任意）
-- Discord から GitHub Issue を作成する最小ボット
-- `discord-issue-bot/.env` にローカルでトークン設定（リポジトリには含めない）
-- 起動例: `docker compose -f docker-compose.yaml up -d --build`
+### 1. Manga Stack UI 📚
+ただ並べるだけじゃつまんないじゃん？
+本を積み上げたような「Manga Stack」デザインで、視覚的にもテンション上がるUIに仕上げたよ！
+ダークモード対応で、夜更かし読書も目に優しい🌙
 
-## 📸 スクリーンショットと例
+### 2. Folder as Book 📂➡️📖
+面倒なDB登録とかインポート作業とか、一切ナシ！
+所定のフォルダにマンガのフォルダをポンって置くだけ。
+あとはアプリが勝手に認識して、いい感じに並べてくれるよ〜！神！
 
-### 🤖 CLIの対話例
-Issueを作成し、`@gemini-cli-jp /help`とコメントして、利用可能なコマンドを確認します:
-
-```
-@gemini-cli-jp /help
-```
-
-AIアシスタントが利用可能なコマンドと使用例を返信します。
-
- 
-
-### 💬 対話の例
-
-**コードレビューのリクエスト:**
-```
-@gemini-cli-jp /review-pr
-このプルリクエストをレビューし、改善点を提案してください
-```
-
-**Issueのトリアージ:**
-```
-@gemini-cli-jp /triage
-このIssueを分析し、適切なラベルと担当者を提案してください
-```
+### 3. Immersive Reader 👓
+読むときは余計なもの一切ナシ。
+没入感ヤバめのリーダーで、ストーリーの世界にどっぷり浸かっちゃお🫶
 
 ---
 
-## 🚀 インストールとセットアップ
+## 🛠️ 技術スタック (Tech Stack)
 
-### 前提条件
-- リポジトリ作成権限のあるGitHubアカウント
-- Google AI StudioのGemini APIキー
-- GitHub Actionsの基本的な理解
-
-### クイックスタート
-1. **このリポジトリをフォーク**して、自分のGitHubアカウントにコピーします
-2. リポジトリの設定で**GitHubシークレットを設定**します:
-   - `GEMINI_API_KEY`: あなたのGemini APIキー
-   - `GITHUB_TOKEN`: (自動的に提供されます)
-3. `.github/workflows/`からあなたのリポジトリに**ワークフローファイルをコピー**します
-4. あなたのニーズに合わせて**ワークフローをカスタマイズ**します
-5. Issueを作成し、`@gemini-cli-jp /help`とコメントして**セットアップをテスト**します
+*   **Frontend**: React, TypeScript, Vite (爆速！)
+*   **Styling**: Vanilla CSS (基本にして最強), Lucide React (アイコンかわちい)
+*   **Design**: Modern, Minimalist, "Manga Stack" Aesthetic
 
 ---
 
-## 🛠️ gemini-actions-lab CLI
+## 🚀 始め方 (Getting Started)
 
-リポジトリに付属する `gemini-actions-lab-cli`（エイリアス: `gal`）を使うと、シークレット同期やテンプレートワークフローの取得をコマンド一発で実行できます。
+とりあえず動かしてみよ？ 3ステップで完了！
 
-### インストール
-
-PyPI から直接インストールできます。
-
+### 1. クローンしてくる
 ```bash
-pip install gemini-actions-lab-cli
+git clone <repo-url>
+cd bookshelf
 ```
 
-ローカル開発でソースを同期したい場合は `uv` によるセットアップもサポートしています。
-
+### 2. 依存関係を入れる
 ```bash
-uv sync
+cd app
+npm install
 ```
 
-### シークレットの同期
-
-`.secrets.env`（任意のファイルを `--env-file` で指定可能）に定義した値を、リポジトリシークレットへ一括で作成・更新します。
-
+### 3. 起動！
 ```bash
-gal sync-secrets --repo <owner>/<repo> --env-file path/to/.secrets.env
+npm run dev
 ```
 
-- コマンド実行ディレクトリの `.env` ファイルは自動的に読み込まれ、`GITHUB_TOKEN` など CLI 実行に必要な環境変数を設定できます。
-- リポジトリへ同期したい secrets は `.secrets.env` に分離してください（任意のファイルを `--env-file` で指定可）。
-- `GITHUB_TOKEN` 環境変数、または `--token` オプションで GitHub の個人アクセストークンを指定してください。
-
-### AIエージェントガイドラインの同期
-
-`.github/ai-guidelines` ディレクトリに格納されているAIエージェントガイドラインをリポジトリに同期できます。
-
-```bash
-# デフォルトブランチに同期
-uv run gal sync-agent --repo Sunwood-ai-labs/my-repo
-
-# 特定のブランチに同期
-uv run gal sync-agent --repo Sunwood-ai-labs/my-repo --branch develop
-
-# カスタムメッセージで同期
-uv run gal sync-agent --repo Sunwood-ai-labs/my-repo --message "docs: update AI agent guidelines"
-```
-
-### 🚀 クイックスタート
-
-よく使う同期コマンドは下記のとおりです（Pages 連携とトップページのコピー込み）。
-
-```bash
-gal sync-workflows \
-  --repo Sunwood-ai-labs/demo-001 \
-  --destination . \
-  --clean \
-  --enable-pages-actions \
-  --include-index
-```
-
-### 🎯 特定のワークフローのコピー（新機能！）
-
-`.github/workflows_remote` または `.github/workflows` から、指定したワークフローファイルをコピーできます。
-
-#### 単一のワークフローをコピー
-
-```bash
-# workflows_remote から特定のワークフローをコピー 🎯
-gal sync-workflows \
-  --workflow gemini-release-notes-remote.yml \
-  --use-remote \
-  --destination .
-
-# 通常の workflows から特定のワークフローをコピー
-gal sync-workflows \
-  --workflow gemini-cli.yml \
-  --destination .
-```
-
-#### 複数のワークフローをコピー（NEW！✨）
-
-```bash
-# 複数のワークフローを一度にコピー 🎯
-gal sync-workflows \
-  --workflows gemini-cli.yml gemini-jp-cli.yml pr-review-kozaki-remote.yml \
-  --destination .
-
-# リモートリポジトリに直接同期
-gal sync-workflows \
-  --workflows gemini-cli.yml gemini-jp-cli.yml \
-  --repo Sunwood-ai-labs/my-repo \
-  --overwrite-github
-```
-
-#### プリセットの使用（NEW！✨）
-
-よく使う組み合わせをプリセットとして用意しています。
-
-```bash
-# 利用可能なプリセット一覧を表示
-gal sync-workflows --list-presets
-
-# プリセットを使ってワークフローをコピー
-gal sync-workflows --preset pr-review --destination .
-
-# プリセット + リモート同期
-gal sync-workflows \
-  --preset basic \
-  --repo Sunwood-ai-labs/my-repo \
-  --overwrite-github
-```
-
-**利用可能なプリセット:**
-- `pr-review`: PR レビューワークフロー（Kozaki, Onizuka, Yukimura）
-- `gemini-cli`: Gemini CLI ワークフロー（英語＋日本語）
-- `release`: リリース自動化ワークフロー
-- `imagen`: 画像生成ワークフロー
-- `basic`: 新規リポジトリ用の基本ワークフロー
-- `full-remote`: すべてのリモートワークフロー
-- `standard`: 標準プロダクションワークフロー（CLI, Release Articles, Release Notes, PR Review 3種, Static Site）
-
-> **Note**: プリセットは `src/gemini_actions_lab_cli/workflow_presets.yml` で管理されています。カスタムプリセットを追加したい場合は、このYAMLファイルを編集してください✨
-
-**オプション説明:**
-- `--workflow`: コピーしたいワークフローファイル名（単一）
-- `--workflows`: コピーしたいワークフローファイル名（複数、スペース区切り）
-- `--preset`: プリセット名（`--workflow` や `--workflows` より優先）
-- `--use-remote`: `.github/workflows_remote` から優先的に取得（なければ `workflows` から自動フォールバック）
-- `--overwrite-github`: 既存ファイルを上書き
-- `--list-presets`: 利用可能なプリセット一覧を表示
-
-> `uv run` を利用して開発用に実行する場合は、`uv run gal ...` と置き換えてください。
-
-オプションの詳細やその他のユースケースは `src/README.md` を参照してください。
+ブラウザで `http://localhost:5173` を開けば、そこはもうあなただけの図書館🏰✨
 
 ---
 
-## 📁 ディレクトリ構造
+## 💅 開発ルール (Dev Rules)
 
-```
-.
-├── .github/
-│   └── workflows/
-│       ├── architecture.md
-│       ├── gemini-cli.yml
-│       ├── gemini-jp-cli.yml
-│       ├── gemini-pr-review.yml
-│       ├── gemini-issue-automated-triage.yml
-│       ├── gemini-issue-scheduled-triage.yml
-│       ├── imagen4-issue-trigger-and-commit.yml
-│       ├── imagen4-generate-and-commit.yml
-│       ├── gemini-release-notes.yml
-│       ├── static-site.yml
-│       └── sync-to-report-gh.yml
-├── discord-issue-bot/
-│   ├── Dockerfile
-│   ├── pyproject.toml
-│   ├── docker-compose.yaml
-│   └── bot.py
-├── .gitignore
-├── LICENSE
-└── README.md
-```
+このプロジェクトは **「ギャルエンジニア × SOLID原則」** で運用されてるよ！
+コード書くときは、かわいく・強く・読みやすく！
+
+詳しくは [GEMINI.md](./GEMINI.md) を読んでね💕
+
+> **Note**: 開発エージェントのみんなへ
+> `AGENTS.md` も要チェックだよ！🤖
 
 ---
 
+<div align="center">
 
+**Let’s code cute *and* clean. 可愛く作って、強く伸びる！それな〜💕**
 
-## 🤖 Discord Issue Bot
+© 2025 Bookshelf Project
 
-Discord から直接 GitHub Issue を作成する最小ボットの詳細なドキュメントは、以下を参照してください。
-
-- ドキュメント: [discord-issue-bot/README.md](discord-issue-bot/README.md)
-
-## 📝 ライセンス
-
-このプロジェクトは、[LICENSE](LICENSE)ファイルの条件に基づいてライセンスされています。
-
----
-
-© 2025 Sunwood-ai-labsII
-
-
----
+</div>

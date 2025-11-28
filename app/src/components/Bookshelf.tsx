@@ -9,6 +9,7 @@ import styles from './Bookshelf.module.css';
 export const Bookshelf: React.FC = () => {
     // Default repo: datasets/MakiAi/bookshelf-db
     const [repo] = useState<string>('datasets/MakiAi/bookshelf-db');
+    const [searchQuery, setSearchQuery] = useState<string>('');
     const [selectedBook, setSelectedBook] = useState<BookEntry | null>(null);
 
     // We modify useBookshelf to accept a dependency or expose a refresh method, 
@@ -40,12 +41,25 @@ export const Bookshelf: React.FC = () => {
         setSelectedBook(null);
     };
 
+    const filteredBooks = books.filter(book =>
+        book.title.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
     return (
         <div className={styles.shelfContainer}>
             <header className={styles.header}>
                 <h1 className={styles.title}>Library</h1>
 
-                {/* Search removed as per request - Fixed to MakiAi/bookshelf-db */}
+                <div className={styles.inputContainer}>
+                    <input
+                        type="text"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        placeholder="Search books..."
+                        className={styles.repoInput}
+                    />
+                </div>
+
                 <div className={styles.filters}>
                     <span className={`${styles.chip} ${styles.active}`}>All</span>
                     <span className={styles.chip}>Favorites</span>
@@ -64,10 +78,16 @@ export const Bookshelf: React.FC = () => {
                     {/* Upload Button is always first */}
                     <UploadBook repo={repo} onUploadSuccess={handleUploadSuccess} />
 
-                    {books.map((book) => (
+                    {filteredBooks.map((book) => (
                         <Book key={book.title} book={book} onClick={handleBookClick} />
                     ))}
                 </div>
+            )}
+
+            {!loading && !error && filteredBooks.length === 0 && books.length > 0 && (
+                <p style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>
+                    No books match your search.
+                </p>
             )}
 
             {!loading && !error && books.length === 0 && (

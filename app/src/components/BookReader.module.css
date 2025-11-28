@@ -13,7 +13,7 @@
 
 .header {
     padding: 15px 20px;
-    background: rgba(0, 0, 0, 0.8);
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0) 100%);
     color: white;
     display: flex;
     justify-content: space-between;
@@ -25,6 +25,7 @@
     box-sizing: border-box;
     transition: transform 0.3s ease, opacity 0.3s ease;
     opacity: 1;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
 }
 
 .header.hidden {

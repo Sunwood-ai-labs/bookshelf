@@ -1,103 +1,50 @@
 .bookContainer {
-  perspective: 1000px;
-  width: 150px;
-  height: 220px;
-  margin: 10px;
+  width: 100%;
   cursor: pointer;
-  transition: transform 0.3s ease;
+  transition: transform 0.2s ease;
 }
 
 .bookContainer:hover {
-  transform: translateY(-10px) scale(1.05);
-  z-index: 10;
+  transform: translateY(-4px);
 }
 
-.book {
+.coverWrapper {
   width: 100%;
-  height: 100%;
-  position: relative;
-  transform-style: preserve-3d;
-  transition: transform 0.5s;
-  box-shadow: 0 10px 20px rgba(255, 105, 180, 0.3);
-  border-radius: 5px 15px 15px 5px;
-}
-
-.cover {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  backface-visibility: hidden;
-  border-radius: 5px 15px 15px 5px;
+  aspect-ratio: 2 / 3;
+  border-radius: var(--border-radius);
   overflow: hidden;
-  background: #fff;
-  border: 2px solid #ff69b4;
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 10px;
+  background-color: var(--bg-secondary);
+  position: relative;
 }
 
-.cover img {
+.coverImage {
   width: 100%;
   height: 100%;
   object-fit: cover;
-}
-
-.spine {
-  position: absolute;
-  width: 20px;
-  height: 100%;
-  left: 0;
-  top: 0;
-  transform: rotateY(90deg) translateZ(-10px);
-  background: linear-gradient(to right, #ff1493, #ff69b4);
-  border-radius: 2px;
-}
-
-/* Glitter effect overlay */
-.glitter {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: url('data:image/svg+xml;utf8,<svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="1" fill="white" opacity="0.5"/></svg>');
-  opacity: 0;
   transition: opacity 0.3s;
-  pointer-events: none;
 }
 
-.bookContainer:hover .glitter {
-  opacity: 1;
-  animation: sparkle 1s infinite;
+.bookContainer:hover .coverWrapper {
+  box-shadow: var(--shadow-md);
 }
 
-@keyframes sparkle {
-  0% {
-    opacity: 0.3;
-    transform: scale(1);
-  }
-
-  50% {
-    opacity: 1;
-    transform: scale(1.2);
-  }
-
-  100% {
-    opacity: 0.3;
-    transform: scale(1);
-  }
+.info {
+  padding: 0 4px;
 }
 
-.titleOverlay {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  background: rgba(255, 255, 255, 0.8);
-  padding: 5px;
-  text-align: center;
-  font-size: 0.8rem;
-  font-weight: bold;
-  color: #ff1493;
-  border-top: 1px solid #ff69b4;
+.title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 4px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.subtitle {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
 }

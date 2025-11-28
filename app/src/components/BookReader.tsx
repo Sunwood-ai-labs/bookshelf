@@ -9,37 +9,75 @@ interface BookReaderProps {
 }
 
 export const BookReader: React.FC<BookReaderProps> = ({ book, onClose }) => {
-    // Close on Escape key
+    const [showControls, setShowControls] = React.useState(true);
+    const controlsTimeoutRef = React.useRef<number | null>(null);
+
+    const resetControlsTimeout = () => {
+        setShowControls(true);
+        if (controlsTimeoutRef.current) {
+            window.clearTimeout(controlsTimeoutRef.current);
+        }
+        controlsTimeoutRef.current = window.setTimeout(() => {
+            setShowControls(false);
+        }, 3000); // Hide after 3 seconds
+    };
+
+    // Initial timeout
     useEffect(() => {
-        const handleEsc = (e: KeyboardEvent) => {
-            if (e.key === 'Escape') onClose();
+        resetControlsTimeout();
+        return () => {
+            if (controlsTimeoutRef.current) window.clearTimeout(controlsTimeoutRef.current);
         };
-        window.addEventListener('keydown', handleEsc);
-        return () => window.removeEventListener('keydown', handleEsc);
+    }, []);
+
+    // Close on Escape key and Navigate with Arrows
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            resetControlsTimeout(); // Show controls on interaction
+            if (e.key === 'Escape') onClose();
+
+            // Simple scroll navigation
+            const container = document.querySelector(`.${styles.readerContainer}`);
+            if (container) {
+                if (e.key === 'ArrowRight') {
+                    container.scrollBy({ left: window.innerWidth, behavior: 'smooth' });
+                } else if (e.key === 'ArrowLeft') {
+                    container.scrollBy({ left: -window.innerWidth, behavior: 'smooth' });
+                }
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
     }, [onClose]);
 
-    return (
-        <div className={styles.overlay} onClick={onClose}>
-            <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-                <header className={styles.header}>
-                    <h2 className={styles.title}>{book.title}</h2>
-                    <button className={styles.closeBtn} onClick={onClose}>
-                        <X size={20} />
-                    </button>
-                </header>
+    const handleMouseMove = () => {
+        resetControlsTimeout();
+    };
 
-                <div className={styles.content}>
-                    <div className={styles.readerContainer}>
-                        {book.pages.map((page, index) => (
-                            <div key={page.path} className={styles.page}>
-                                <img src={page.url} alt={`Page ${index + 1}`} loading="lazy" />
-                            </div>
-                        ))}
-                    </div>
-                    <div className={styles.pageNumber}>
-                        {book.pages.length} Pages
-                    </div>
+    return (
+        <div className={styles.overlay} onMouseMove={handleMouseMove} onClick={resetControlsTimeout}>
+            <header className={`${styles.header} ${showControls ? '' : styles.hidden}`}>
+                <button className={styles.closeBtn} onClick={onClose}>
+                    <X size={24} />
+                </button>
+                <h2 className={styles.title}>{book.title}</h2>
+                <div style={{ width: 40 }}></div> {/* Spacer for centering */}
+            </header>
+
+            <div className={styles.content}>
+                <div className={styles.readerContainer}>
+                    {book.pages.map((page, index) => (
+                        <div key={page.path} className={styles.page}>
+                            <img src={page.url} alt={`Page ${index + 1}`} loading="lazy" />
+                        </div>
+                    ))}
                 </div>
+            </div>
+
+            <div className={styles.footer}>
+                <span className={styles.pageNumber}>
+                    {book.pages.length} Pages
+                </span>
             </div>
         </div>
     );

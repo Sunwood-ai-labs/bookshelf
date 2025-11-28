@@ -94,12 +94,11 @@ export const UploadBook: React.FC<UploadBookProps> = ({ repo, onUploadSuccess })
                             onClick={handleUpload}
                             disabled={uploading || !token}
                         >
-                            {uploading ? 'Uploading...' : 'Upload ✨'}
+                            {uploading ? 'Uploading...' : 'Upload'}
                         </button>
                         <button
-                            className={styles.uploadBtn}
+                            className={styles.cancelBtn}
                             onClick={clearFile}
-                            style={{ background: '#ff4d4d' }}
                         >
                             Cancel
                         </button>
@@ -107,8 +106,8 @@ export const UploadBook: React.FC<UploadBookProps> = ({ repo, onUploadSuccess })
                 </>
             ) : (
                 <>
-                    <Plus className={styles.icon} size={40} />
-                    <span className={styles.label}>Add New Pic</span>
+                    <Plus className={styles.icon} size={32} />
+                    <span className={styles.label}>Add Book</span>
                 </>
             )}
         </div>

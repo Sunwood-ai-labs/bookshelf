@@ -14,17 +14,18 @@ export const Book: React.FC<BookProps> = ({ book, onClick }) => {
             title={book.title}
             onClick={() => onClick(book)}
         >
-            <div className={styles.book}>
-                <div className={styles.spine}></div>
-                <div className={styles.cover}>
-                    <img src={book.cover.url} alt={book.title} loading="lazy" />
-                    <div className={styles.glitter}></div>
-                    <div className={styles.titleOverlay}>
-                        <span>{book.title}</span>
-                    </div>
-                </div>
+            <div className={styles.coverWrapper}>
+                <img
+                    src={book.cover.url}
+                    alt={book.title}
+                    className={styles.coverImage}
+                    loading="lazy"
+                />
+            </div>
+            <div className={styles.info}>
+                <div className={styles.title}>{book.title}</div>
+                <div className={styles.subtitle}>{book.pages.length} Pages</div>
             </div>
         </div>
     );
 };
-

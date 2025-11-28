@@ -1,36 +1,38 @@
 .uploadContainer {
-    width: 150px;
-    height: 220px;
-    margin: 10px;
+    width: 100%;
+    aspect-ratio: 2 / 3;
+    border-radius: var(--border-radius);
+    border: 2px dashed #d1d1d6;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    border: 3px dashed #ff69b4;
-    border-radius: 15px;
-    background: rgba(255, 255, 255, 0.5);
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
+    background-color: transparent;
     position: relative;
     overflow: hidden;
 }
 
 .uploadContainer:hover {
-    background: rgba(255, 182, 193, 0.3);
-    transform: translateY(-5px);
-    border-color: #ff1493;
+    border-color: var(--accent);
+    background-color: var(--bg-secondary);
 }
 
 .icon {
-    color: #ff69b4;
-    margin-bottom: 10px;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+    transition: color 0.2s;
+}
+
+.uploadContainer:hover .icon {
+    color: var(--accent);
 }
 
 .label {
-    color: #ff1493;
-    font-weight: bold;
+    color: var(--text-secondary);
     font-size: 0.9rem;
-    text-align: center;
+    font-weight: 600;
 }
 
 .fileInput {
@@ -41,7 +43,6 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
-    border-radius: 12px;
 }
 
 .actions {
@@ -49,11 +50,11 @@
     bottom: 0;
     left: 0;
     width: 100%;
-    background: rgba(255, 255, 255, 0.9);
-    padding: 10px;
+    background: rgba(255, 255, 255, 0.95);
+    padding: 15px;
     display: flex;
     flex-direction: column;
-    gap: 5px;
+    gap: 8px;
     transform: translateY(100%);
     transition: transform 0.3s;
 }
@@ -64,29 +65,35 @@
 }
 
 .uploadBtn {
-    background: #ff1493;
+    width: 100%;
+    background: var(--accent);
     color: white;
-    border: none;
-    padding: 5px 10px;
-    border-radius: 15px;
-    font-size: 0.8rem;
-    cursor: pointer;
+    border-radius: 8px;
+    padding: 8px;
+    font-size: 0.9rem;
 }
 
-.uploadBtn:hover {
-    background: #ff69b4;
+.cancelBtn {
+    width: 100%;
+    background: transparent;
+    color: #ff3b30;
+    border: 1px solid #ff3b30;
+    border-radius: 8px;
+    padding: 8px;
+    font-size: 0.9rem;
 }
 
-.uploadBtn:disabled {
-    background: #ccc;
-    cursor: not-allowed;
+.cancelBtn:hover {
+    background: #fff2f2;
+    opacity: 1;
 }
 
 .tokenInput {
-    width: 90%;
-    padding: 5px;
-    border: 1px solid #ff69b4;
-    border-radius: 5px;
-    font-size: 0.7rem;
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #d1d1d6;
+    border-radius: 8px;
+    font-size: 0.8rem;
     margin-bottom: 5px;
+    background: white;
 }

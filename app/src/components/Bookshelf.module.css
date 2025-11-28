@@ -1,99 +1,142 @@
 .shelfContainer {
-    padding: 40px;
-    background: linear-gradient(135deg, #ffe6f2 0%, #e6f2ff 100%);
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
     min-height: 100vh;
-    font-family: 'Comic Sans MS', 'Chalkboard SE', sans-serif;
-    /* Cute font fallback */
 }
 
 .header {
-    text-align: center;
-    margin-bottom: 40px;
+    margin-bottom: 30px;
+    padding-top: 20px;
 }
 
 .title {
-    font-size: 3rem;
-    color: #ff1493;
-    text-shadow: 3px 3px 0px #fff, 5px 5px 0px #ffb6c1;
-    margin: 0;
-    letter-spacing: 2px;
+    font-size: 2.5rem;
+    margin-bottom: 20px;
+    letter-spacing: -0.02em;
 }
 
-.subtitle {
-    color: #9932cc;
-    font-size: 1.2rem;
-    margin-top: 10px;
-    font-weight: bold;
+.inputContainer {
+    margin-bottom: 30px;
+    position: relative;
+}
+
+.repoInput {
+    width: 100%;
+    max-width: 400px;
+    padding: 12px 20px;
+    border-radius: 25px;
+    border: none;
+    background-color: var(--bg-secondary);
+    font-size: 1rem;
+    color: var(--text-primary);
+    outline: none;
+    transition: box-shadow 0.2s;
+}
+
+.repoInput:focus {
+    box-shadow: 0 0 0 2px var(--accent);
 }
 
 .grid {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 30px;
-    max-width: 1200px;
-    margin: 0 auto;
-}
-
-.shelfRow {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    width: 100%;
-    border-bottom: 15px solid #deb887;
-    /* Wood shelf */
-    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
-    padding-bottom: 10px;
-    margin-bottom: 40px;
-    background: rgba(255, 255, 255, 0.4);
-    border-radius: 10px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 24px;
+    padding-bottom: 40px;
 }
 
 .loading {
     text-align: center;
-    font-size: 1.5rem;
-    color: #ff69b4;
-    animation: bounce 1s infinite;
-}
-
-@keyframes bounce {
-
-    0%,
-    100% {
-        transform: translateY(0);
-    }
-
-    50% {
-        transform: translateY(-10px);
-    }
+    font-size: 1.2rem;
+    color: var(--text-secondary);
+    margin-top: 50px;
 }
 
 .error {
-    color: #ff0000;
+    color: #ff3b30;
     text-align: center;
-    font-size: 1.2rem;
-    background: #ffe6e6;
-    padding: 20px;
-    border-radius: 10px;
-    border: 2px dashed #ff0000;
+    background: #fff2f2;
+    padding: 15px;
+    border-radius: var(--border-radius);
+    margin-bottom: 20px;
 }
 
-.inputContainer {
-    text-align: center;
-    margin-bottom: 30px;
+/* Filter Chips (Visual Only) */
+.filters {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+    scrollbar-width: none;
+    /* Hide scrollbar */
 }
 
-.repoInput {
-    padding: 10px 20px;
-    border-radius: 25px;
-    border: 2px solid #ff69b4;
-    font-size: 1rem;
-    width: 300px;
-    outline: none;
-    color: #ff1493;
-    background: #fff0f5;
+.filters::-webkit-scrollbar {
+    display: none;
 }
 
-.repoInput:focus {
-    box-shadow: 0 0 10px #ff69b4;
+.chip {
+    padding: 8px 16px;
+    border-radius: 20px;
+    background-color: var(--bg-secondary);
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.chip.active {
+    background-color: var(--accent);
+    color: white;
+}
+
+/* Desktop Responsive Styles */
+@media (min-width: 768px) {
+    .shelfContainer {
+        padding: 40px;
+    }
+
+    .header {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+    }
+
+    .title {
+        margin-bottom: 0;
+        font-size: 3rem;
+    }
+
+    .inputContainer {
+        margin-bottom: 0;
+        flex: 1;
+        max-width: 500px;
+        order: 2;
+        /* Move search to the right or middle */
+    }
+
+    .filters {
+        width: 100%;
+        order: 3;
+        /* Filters below title and search */
+        margin-top: 20px;
+        overflow-x: visible;
+        /* No scroll needed if they fit, or wrap */
+        flex-wrap: wrap;
+    }
+
+    .grid {
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+        gap: 32px;
+    }
+}
+
+@media (min-width: 1024px) {
+    .grid {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    }
 }

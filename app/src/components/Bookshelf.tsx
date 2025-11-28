@@ -8,7 +8,7 @@ import styles from './Bookshelf.module.css';
 
 export const Bookshelf: React.FC = () => {
     // Default repo: datasets/MakiAi/bookshelf-db
-    const [repo, setRepo] = useState<string>('datasets/MakiAi/bookshelf-db');
+    const [repo] = useState<string>('datasets/MakiAi/bookshelf-db');
     const [selectedBook, setSelectedBook] = useState<BookEntry | null>(null);
 
     // We modify useBookshelf to accept a dependency or expose a refresh method, 
@@ -43,41 +43,37 @@ export const Bookshelf: React.FC = () => {
     return (
         <div className={styles.shelfContainer}>
             <header className={styles.header}>
-                <h1 className={styles.title}>✨ Gal's Bookshelf ✨</h1>
-                <p className={styles.subtitle}>My fav pics from Hugging Face 💖</p>
+                <h1 className={styles.title}>Library</h1>
+
+                {/* Search removed as per request - Fixed to MakiAi/bookshelf-db */}
+                <div className={styles.filters}>
+                    <span className={`${styles.chip} ${styles.active}`}>All</span>
+                    <span className={styles.chip}>Favorites</span>
+                    <span className={styles.chip}>Recent</span>
+                    <span className={styles.chip}>Manga</span>
+                    <span className={styles.chip}>Artbook</span>
+                </div>
             </header>
 
-            <div className={styles.inputContainer}>
-                <input
-                    type="text"
-                    value={repo}
-                    onChange={(e) => setRepo(e.target.value)}
-                    placeholder="Enter HF Repo (e.g. datasets/user/repo)"
-                    className={styles.repoInput}
-                />
-            </div>
+            {loading && <div className={styles.loading}>Loading...</div>}
 
-            {loading && <div className={styles.loading}>Loading vibes... ⏳</div>}
-
-            {error && <div className={styles.error}>OMG Error! 😱 {error}</div>}
+            {error && <div className={styles.error}>{error}</div>}
 
             {!loading && !error && (
                 <div className={styles.grid}>
-                    <div className={styles.shelfRow}>
-                        {/* Upload Button is always first */}
-                        <UploadBook repo={repo} onUploadSuccess={handleUploadSuccess} />
+                    {/* Upload Button is always first */}
+                    <UploadBook repo={repo} onUploadSuccess={handleUploadSuccess} />
 
-                        {books.map((book) => (
-                            <Book key={book.title} book={book} onClick={handleBookClick} />
-                        ))}
-
-                        {books.length === 0 && (
-                            <p style={{ color: '#ff69b4', width: '100%', textAlign: 'center' }}>
-                                No books yet... Add one! 📸
-                            </p>
-                        )}
-                    </div>
+                    {books.map((book) => (
+                        <Book key={book.title} book={book} onClick={handleBookClick} />
+                    ))}
                 </div>
+            )}
+
+            {!loading && !error && books.length === 0 && (
+                <p style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>
+                    No books found. Try adding one!
+                </p>
             )}
 
             {selectedBook && (

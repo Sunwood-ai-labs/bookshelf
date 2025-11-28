@@ -5,7 +5,7 @@ import './App.css';
 
 function App() {
   return (
-    <Router>
+    <Router basename="/bookshelf">
       <Routes>
         <Route path="/" element={<Bookshelf />} />
         <Route path="/add" element={<AddBookPage />} />

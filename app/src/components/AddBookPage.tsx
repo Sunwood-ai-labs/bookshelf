@@ -187,6 +187,10 @@ export const AddBookPage: React.FC = () => {
                     )}
                 </div>
 
+                <div className={styles.notice}>
+                    <p>⚠️ Uploaded data will be publicly available at <a href="https://huggingface.co/datasets/MakiAi/bookshelf-db" target="_blank" rel="noopener noreferrer">Hugging Face Datasets</a>.</p>
+                </div>
+
                 {!token && (
                     <div className={styles.formGroup}>
                         <label>HF Write Token *</label>

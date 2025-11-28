@@ -2,3 +2,19 @@
   width: 100%;
   min-height: 100vh;
 }
+
+.App.github-ribbon {
+  position: fixed;
+  top: 0;
+  right: 0;
+  z-index: 9999;
+}
+
+.github-ribbon img {
+  border: 0;
+}
+
+#root {
+  width: 100%;
+  min-height: 100vh;
+}

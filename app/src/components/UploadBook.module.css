@@ -158,6 +158,23 @@
     box-shadow: var(--shadow-lg);
 }
 
+.notice {
+    background-color: rgba(255, 193, 7, 0.1);
+    border: 1px solid #ffc107;
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 20px;
+    color: #ffc107;
+    font-size: 0.9rem;
+    text-align: center;
+}
+
+.notice a {
+    color: #ffc107;
+    font-weight: 700;
+    text-decoration: underline;
+}
+
 .formGroup {
     display: flex;
     flex-direction: column;

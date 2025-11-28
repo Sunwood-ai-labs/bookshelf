@@ -5,8 +5,8 @@ import { UploadBook } from './UploadBook';
 import styles from './Bookshelf.module.css';
 
 export const Bookshelf: React.FC = () => {
-    // Default repo: huggingface/datasets/huggingface/documentation-images
-    const [repo, setRepo] = useState<string>('datasets/huggingface/documentation-images');
+    // Default repo: datasets/MakiAi/bookshelf-db
+    const [repo, setRepo] = useState<string>('datasets/MakiAi/bookshelf-db');
 
     // We modify useBookshelf to accept a dependency or expose a refresh method, 
     // but for now let's just force re-render by toggling a key or similar if we modify the hook.
@@ -23,7 +23,7 @@ export const Bookshelf: React.FC = () => {
     // Actually, I can update the hook right now in the same turn if I want, but let's stick to one file per tool if possible for clarity.
     // I'll update Bookshelf first, then update the hook to support refreshing.
 
-    const { images, loading, error, refresh } = useBookshelf(repo);
+    const { books, loading, error, refresh } = useBookshelf(repo);
 
     const handleUploadSuccess = useCallback(() => {
         refresh();
@@ -56,13 +56,13 @@ export const Bookshelf: React.FC = () => {
                         {/* Upload Button is always first */}
                         <UploadBook repo={repo} onUploadSuccess={handleUploadSuccess} />
 
-                        {images.map((file) => (
-                            <Book key={file.path} file={file} />
+                        {books.map((book) => (
+                            <Book key={book.title} book={book} />
                         ))}
 
-                        {images.length === 0 && (
+                        {books.length === 0 && (
                             <p style={{ color: '#ff69b4', width: '100%', textAlign: 'center' }}>
-                                No images yet... Add one! 📸
+                                No books yet... Add one! 📸
                             </p>
                         )}
                     </div>
@@ -71,4 +71,3 @@ export const Bookshelf: React.FC = () => {
         </div>
     );
 };
-

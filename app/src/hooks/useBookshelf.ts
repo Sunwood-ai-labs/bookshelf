@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
-import { getImagesFromRepo, HFFile } from '../services/huggingface';
+import { getImagesFromRepo, BookEntry } from '../services/huggingface';
 
 export const useBookshelf = (repo: string) => {
-    const [images, setImages] = useState<HFFile[]>([]);
+    const [books, setBooks] = useState<BookEntry[]>([]);
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
     const [refreshCount, setRefreshCount] = useState(0);
@@ -12,21 +12,21 @@ export const useBookshelf = (repo: string) => {
     useEffect(() => {
         if (!repo) return;
 
-        const fetchImages = async () => {
+        const fetchBooks = async () => {
             setLoading(true);
             setError(null);
             try {
-                const files = await getImagesFromRepo(repo);
-                setImages(files);
+                const data = await getImagesFromRepo(repo);
+                setBooks(data);
             } catch (err) {
-                setError(err instanceof Error ? err.message : 'Failed to fetch images');
+                setError(err instanceof Error ? err.message : 'Failed to fetch books');
             } finally {
                 setLoading(false);
             }
         };
 
-        fetchImages();
+        fetchBooks();
     }, [repo, refreshCount]);
 
-    return { images, loading, error, refresh };
+    return { books, loading, error, refresh };
 };

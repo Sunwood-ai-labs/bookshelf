@@ -1,21 +1,25 @@
 import React from 'react';
 import styles from './Book.module.css';
-import { HFFile } from '../services/huggingface';
+import { BookEntry } from '../services/huggingface';
 
 interface BookProps {
-    file: HFFile;
+    book: BookEntry;
 }
 
-export const Book: React.FC<BookProps> = ({ file }) => {
+export const Book: React.FC<BookProps> = ({ book }) => {
     return (
-        <div className={styles.bookContainer}>
+        <div className={styles.bookContainer} title={book.title}>
             <div className={styles.book}>
                 <div className={styles.spine}></div>
                 <div className={styles.cover}>
-                    <img src={file.url} alt={file.path} loading="lazy" />
+                    <img src={book.cover.url} alt={book.title} loading="lazy" />
                     <div className={styles.glitter}></div>
+                    <div className={styles.titleOverlay}>
+                        <span>{book.title}</span>
+                    </div>
                 </div>
             </div>
         </div>
     );
 };
+

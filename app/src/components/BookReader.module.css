@@ -1,0 +1,149 @@
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(5px);
+    z-index: 1000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    animation: fadeIn 0.3s ease;
+}
+
+.modal {
+    width: 90%;
+    max-width: 1000px;
+    height: 85vh;
+    background: #fff0f5;
+    border-radius: 20px;
+    border: 4px solid #ff69b4;
+    box-shadow: 0 0 30px rgba(255, 105, 180, 0.6);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+}
+
+.header {
+    padding: 15px 20px;
+    background: #ff69b4;
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.title {
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin: 0;
+    text-shadow: 1px 1px 0 #ff1493;
+}
+
+.closeBtn {
+    background: transparent;
+    border: 2px solid white;
+    color: white;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 1.2rem;
+    transition: all 0.2s;
+    padding: 0;
+}
+
+.closeBtn:hover {
+    background: white;
+    color: #ff69b4;
+    transform: rotate(90deg);
+}
+
+.content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: linear-gradient(to bottom, #fff0f5, #ffffff);
+}
+
+/* Horizontal Scroll Reader Style */
+.readerContainer {
+    display: flex;
+    overflow-x: auto;
+    gap: 20px;
+    padding: 20px;
+    width: 100%;
+    height: 100%;
+    align-items: center;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: thin;
+    scrollbar-color: #ff69b4 #fff0f5;
+}
+
+.readerContainer::-webkit-scrollbar {
+    height: 10px;
+}
+
+.readerContainer::-webkit-scrollbar-track {
+    background: #fff0f5;
+}
+
+.readerContainer::-webkit-scrollbar-thumb {
+    background-color: #ff69b4;
+    border-radius: 10px;
+}
+
+.page {
+    flex: 0 0 auto;
+    height: 90%;
+    max-width: 90%;
+    scroll-snap-align: center;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    background: white;
+    padding: 10px;
+    border: 1px solid #ffb6c1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.page img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    border-radius: 5px;
+}
+
+.pageNumber {
+    position: absolute;
+    bottom: 20px;
+    background: rgba(255, 105, 180, 0.8);
+    color: white;
+    padding: 5px 15px;
+    border-radius: 15px;
+    font-size: 0.9rem;
+    pointer-events: none;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}

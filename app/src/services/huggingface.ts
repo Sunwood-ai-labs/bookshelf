@@ -5,7 +5,13 @@ export interface HFFile {
     url: string;
 }
 
-export const getImagesFromRepo = async (repo: string): Promise<HFFile[]> => {
+export interface BookEntry {
+    title: string;
+    cover: HFFile;
+    pages: HFFile[];
+}
+
+export const getImagesFromRepo = async (repo: string): Promise<BookEntry[]> => {
     try {
         // Note: This works for public repositories. For private ones, we'd need a token.
         // The iterator returns async results
@@ -32,7 +38,54 @@ export const getImagesFromRepo = async (repo: string): Promise<HFFile[]> => {
                 });
             }
         }
-        return files;
+
+        // Group by folder
+        const booksMap = new Map<string, HFFile[]>();
+        const rootFiles: HFFile[] = [];
+
+        files.forEach(file => {
+            const parts = file.path.split('/');
+            if (parts.length > 1) {
+                // It's in a folder
+                const folderName = parts[0];
+                if (!booksMap.has(folderName)) {
+                    booksMap.set(folderName, []);
+                }
+                booksMap.get(folderName)?.push(file);
+            } else {
+                // Root file
+                rootFiles.push(file);
+            }
+        });
+
+        const books: BookEntry[] = [];
+
+        // Convert map to BookEntry array
+        booksMap.forEach((pages, title) => {
+            // Sort pages by name to ensure consistent order
+            pages.sort((a, b) => a.path.localeCompare(b.path));
+
+            // Use the first image as cover
+            const cover = pages[0];
+
+            books.push({
+                title,
+                cover,
+                pages
+            });
+        });
+
+        // Handle root files if any (treat as single-page books or Misc?)
+        // Let's treat them as individual books for now to not lose them
+        rootFiles.forEach(file => {
+            books.push({
+                title: file.path, // Use filename as title
+                cover: file,
+                pages: [file]
+            });
+        });
+
+        return books;
     } catch (error) {
         console.error("Error fetching from HF:", error);
         throw error;

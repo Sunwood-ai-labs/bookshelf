@@ -69,7 +69,35 @@
 }
 
 @keyframes sparkle {
-  0% { opacity: 0.3; transform: scale(1); }
-  50% { opacity: 1; transform: scale(1.2); }
-  100% { opacity: 0.3; transform: scale(1); }
+  0% {
+    opacity: 0.3;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+
+  100% {
+    opacity: 0.3;
+    transform: scale(1);
+  }
+}
+
+.titleOverlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: rgba(255, 255, 255, 0.8);
+  padding: 5px;
+  text-align: center;
+  font-size: 0.8rem;
+  font-weight: bold;
+  color: #ff1493;
+  border-top: 1px solid #ff69b4;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }

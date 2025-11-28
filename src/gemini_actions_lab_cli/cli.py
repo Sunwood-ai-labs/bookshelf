@@ -1,0 +1,752 @@
+"""Entry point for the ``gemini-actions-lab-cli`` command line interface."""
+
+from __future__ import annotations
+
+import argparse
+import itertools
+import os
+import re
+import shutil
+import sys
+import tempfile
+import time
+from pathlib import Path
+from typing import Any, Dict, Iterable
+
+try:  # Optional dependency for banner rendering
+    import pyfiglet  # type: ignore
+except ImportError:  # pragma: no cover - falls back to plain text banner
+    pyfiglet = None
+
+from .env_loader import apply_env_file, load_env_file
+from .github_api import GitHubClient, GitHubError, encrypt_secret, parse_repo
+from .secrets import SecretSyncResult, sync_secrets_from_env_file, sync_repository_secrets
+from .workflows import WorkflowSyncError, extract_github_directory
+from .workflow_presets import get_preset_workflows, list_presets
+
+DEFAULT_TEMPLATE_REPO = "Sunwood-ai-labsII/gemini-actions-lab"
+DEFAULT_SECRETS_FILE = ".secrets.env"
+
+_INTRO_SHOWN = False
+DEFAULT_BANNER_TEXT = "Gemini Actions Lab CLI"
+
+
+def _render_ascii_banner(text: str) -> list[str]:
+    if pyfiglet is not None:
+        rendered = pyfiglet.figlet_format(text, font="slant")
+        return [line for line in rendered.splitlines() if line.strip()]
+    return [text.upper()]
+
+
+BANNER_LINES = _render_ascii_banner(DEFAULT_BANNER_TEXT)
+
+
+def _render_intro_animation() -> None:
+    global _INTRO_SHOWN
+    if _INTRO_SHOWN:
+        return
+    colors = ["\033[95m", "\033[94m", "\033[96m", "\033[36m", "\033[92m", "\033[32m"]
+    for line, color in zip(BANNER_LINES, itertools.cycle(colors)):
+        print(f"{color}{line}\033[0m", flush=True)
+        time.sleep(0.04)
+    # print("\033[92m✨ GEMINI ACTIONS LAB CLI ✨\033[0m\n")
+    _INTRO_SHOWN = True
+
+
+class ProgressReporter:
+    RESET = "\033[0m"
+
+    def __init__(self) -> None:
+        self._spinner = itertools.cycle([
+            "\033[95m◆\033[0m",
+            "\033[94m◇\033[0m",
+            "\033[96m◆\033[0m",
+            "\033[36m◇\033[0m",
+        ])
+        self._buffer: list[tuple[str, str | None]] = []
+
+    @staticmethod
+    def _visible_len(text: str) -> int:
+        return len(re.sub(r"\x1b\[[0-9;]*m", "", text))
+
+    def _panel(self, header: str, body: list[str], accent: str) -> None:
+        visible_lengths = [self._visible_len(header) + 2] + [
+            self._visible_len(line) + 2 for line in body
+        ]
+        content_width = max(visible_lengths) if visible_lengths else 20
+        term_width = shutil.get_terminal_size(fallback=(100, 20)).columns
+        target_width = max(term_width - 2, 20)
+        inner_width = max(target_width, content_width)
+        horiz = "─" * inner_width
+        top = f"{accent}┌{horiz}┐{self.RESET}"
+        bottom = f"{accent}└{horiz}┘{self.RESET}"
+        print(top)
+        print(f"{accent}│{self._pad(header, inner_width)}│{self.RESET}")
+        for line in body:
+            print(f"{accent}│{self._pad(line, inner_width)}│{self.RESET}")
+        print(bottom)
+
+    def _pad(self, text: str, width: int) -> str:
+        visible_len = self._visible_len(text)
+        extra = width - visible_len
+        if extra >= 0:
+            right_pad = max(extra - 1, 0)
+            return f" {text}{' ' * right_pad}"
+        return f" {text}"
+
+    def stage(self, title: str, detail: str | None = None) -> None:
+        badge = next(self._spinner)
+        self._buffer.append((f"{badge} {title}", detail))
+
+    def success(self, message: str) -> None:
+        self._buffer.append((f"✔ {message}", None))
+
+    def info(self, message: str) -> None:
+        self._buffer.append((f"… {message}", None))
+
+    def list_panel(self, title: str, items: list[str]) -> None:
+        body = [f"• {item}" for item in items] if items else ["(none)"]
+        header = f"📂 {title}"
+        self._panel(header, body, "\033[94m")
+
+    def grouped(self, title: str, entries: list[tuple[str, str | None]]) -> None:
+        lines: list[str] = []
+        for label, detail in entries:
+            text = label if detail is None else f"{label}: {detail}"
+            lines.append(text)
+        self._panel(f"🚀 {title}", lines, "\033[95m")
+
+    def flush(self, title: str) -> None:
+        if not self._buffer:
+            return
+        lines: list[str] = []
+        for label, detail in self._buffer:
+            lines.append(label)
+            if detail:
+                lines.append(f"  • {detail}")
+        self._panel(f"🚀 {title}", lines, "\033[95m")
+        self._buffer.clear()
+
+
+def _require_token(explicit_token: str | None) -> str:
+    token = explicit_token or os.getenv("GITHUB_TOKEN")
+    if not token:
+        raise SystemExit(
+            "A GitHub personal access token is required. Provide it via the --token "
+            "option or the GITHUB_TOKEN environment variable."
+        )
+    return token
+
+
+def sync_secrets(args: argparse.Namespace) -> int:
+    token = _require_token(args.token)
+    try:
+        result = sync_secrets_from_env_file(
+            args.repo,
+            [Path(args.env_file)],
+            token=token,
+            api_url=args.api_url,
+        )
+    except FileNotFoundError as exc:
+        raise SystemExit(str(exc)) from exc
+
+    return _print_secret_sync_result(result, args.repo)
+
+
+def _print_secret_sync_result(result: SecretSyncResult, repo: str) -> int:
+    if result.total == 0:
+        print(f"ℹ {repo}: No secrets to sync")
+    if result.created:
+        for name in result.created:
+            print(f"✨ Created secret {name}")
+    if result.updated:
+        for name in result.updated:
+            print(f"✅ Updated secret {name}")
+    if result.failed:
+        for err in result.failed:
+            detail = f"{err.status}: {err.message}" if err.status else err.message
+            print(f"❌ Failed secret {err.name} → {detail}")
+    print(f"🎉 Applied {result.total - len(result.failed)} secrets to {repo}")
+    return 0 if not result.failed else 1
+
+
+def _sync_workflows_remote(
+    client: GitHubClient,
+    template_repo: str,
+    archive_bytes: bytes,
+    target_repo: str,
+    branch: str | None,
+    *,
+    clean: bool,
+    commit_message: str | None,
+    force: bool,
+    enable_pages: bool,
+    extra_files: list[str] | None,
+    overwrite_extras: bool,
+    overwrite_github: bool,
+    workflow_files: list[str] | None = None,
+    prompt_files: list[str] | None = None,
+    agent_files: list[str] | None = None,
+    use_remote: bool = False,
+) -> int:
+    owner_template, repo_template = parse_repo(template_repo)
+    owner_target, repo_target = parse_repo(target_repo)
+
+    reporter = ProgressReporter()
+    reporter.stage(
+        "Extract template archive", f"{owner_template}/{repo_template} → {owner_target}/{repo_target}"
+    )
+
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        tmp_path = Path(tmp_dir)
+        extraction = extract_github_directory(
+            archive_bytes,
+            tmp_path,
+            clean=True,
+            extra_files=extra_files,
+            workflow_files=workflow_files,
+            prompt_files=prompt_files,
+            agent_files=agent_files,
+            use_remote=use_remote,
+        )
+        written = extraction.written
+        if not written:
+            print("❌ Template archive does not contain a .github directory", file=sys.stderr)
+            return 1
+        payloads = []
+        new_paths: set[str] = set()
+        new_dirs: set[str] = set()
+        for file_path in written:
+            relative = file_path.relative_to(tmp_path)
+            full_path = relative.as_posix()
+            mode = "100755" if os.access(file_path, os.X_OK) else "100644"
+            payloads.append(
+                {
+                    "path": full_path,
+                    "mode": mode,
+                    "content": file_path.read_bytes(),
+                }
+            )
+            new_paths.add(full_path)
+            parent = Path(full_path)
+            for ancestor in parent.parents:
+                if ancestor == Path("."):
+                    continue
+                new_dirs.add(ancestor.as_posix())
+
+    reporter.success("Template extraction completed")
+
+    reporter.stage("Inspect target branch", target_repo)
+
+    target_branch = branch or client.get_default_branch(owner_target, repo_target)
+    commit_message = commit_message or f"✨ Sync .github directory from {owner_template}/{repo_template}"
+
+    reporter.info(f"Fetched {owner_target}/{repo_target}@{target_branch}")
+    ref = client.get_ref(owner_target, repo_target, f"heads/{target_branch}")
+    base_commit_sha = ref["object"]["sha"]
+    base_commit = client.get_git_commit(owner_target, repo_target, base_commit_sha)
+    base_tree_sha = base_commit["tree"]["sha"]
+
+    tree_entries = []
+
+    existing_tree: dict[str, Any] | None = None
+
+    if clean:
+        reporter.stage("Clean existing .github contents", "--clean option active")
+        existing_tree = client.get_tree(owner_target, repo_target, base_tree_sha, recursive=True)
+        tree = existing_tree
+        for item in tree.get("tree", []):
+            path = item.get("path")
+            if not path or not path.startswith(".github"):
+                continue
+            if path in new_paths or path in new_dirs:
+                continue
+            tree_entries.append({
+                "path": path,
+                "mode": item["mode"],
+                "type": item["type"],
+                "sha": None,
+            })
+
+    skipped_existing: list[str] = []
+    existing_paths: set[str] | None = None
+
+    needs_existing_tree = (extra_files and not overwrite_extras) or not overwrite_github
+    if needs_existing_tree:
+        if existing_tree is None:
+            existing_tree = client.get_tree(owner_target, repo_target, base_tree_sha, recursive=True)
+        tree = existing_tree
+        existing_paths = {
+            item.get("path")
+            for item in tree.get("tree", [])
+            if item.get("type") == "blob" and item.get("path")
+        }
+
+    if extra_files and not overwrite_extras and existing_paths:
+        extra_set = {path.lstrip("/") for path in extra_files}
+        skipped = sorted(extra_set & existing_paths)
+        if skipped:
+            reporter.info(
+                "Preserving existing file(s) without overwriting: " + ", ".join(skipped)
+            )
+            payloads = [payload for payload in payloads if payload["path"] not in skipped]
+            new_paths.difference_update(skipped)
+            skipped_existing.extend(skipped)
+
+    if not overwrite_github and existing_paths:
+        github_existing = {path for path in existing_paths if path.startswith(".github/")}
+        skipped = sorted(github_existing & new_paths)
+        if skipped:
+            reporter.info(
+                "Preserving existing .github file(s) without overwriting: " + ", ".join(skipped)
+            )
+            payloads = [payload for payload in payloads if payload["path"] not in skipped]
+            new_paths.difference_update(skipped)
+            skipped_existing.extend(skipped)
+
+    for payload in payloads:
+        blob_sha = client.create_blob(owner_target, repo_target, payload["content"])
+        tree_entries.append(
+            {
+                "path": payload["path"],
+                "mode": payload["mode"],
+                "type": "blob",
+                "sha": blob_sha,
+            }
+        )
+
+    if not tree_entries:
+        print("✅ No updates required; remote repository already matches the template")
+        return 0
+
+    dedup: Dict[tuple[str, str], dict[str, Any]] = {}
+    for entry in tree_entries:
+        key = (entry["path"], entry["type"])
+        dedup[key] = entry
+    tree_entries = list(dedup.values())
+
+    reporter.stage("Create commit", "Uploading new tree")
+    tree_sha = client.create_tree(owner_target, repo_target, tree_entries, base_tree=base_tree_sha)["sha"]
+    commit = client.create_commit(
+        owner_target,
+        repo_target,
+        commit_message,
+        tree_sha,
+        parents=[base_commit_sha],
+    )
+    client.update_ref(owner_target, repo_target, target_branch, commit["sha"], force=force)
+
+    reporter.success("Commit created")
+    reporter.flush("Sync steps")
+    reporter.list_panel("Updated files", [payload["path"] for payload in payloads])
+    if skipped_existing:
+        reporter.list_panel("Preserved files", sorted(set(skipped_existing)))
+    reporter.success(
+        f"Applied {len(payloads)} updates to {owner_target}/{repo_target}@{target_branch} ({commit['sha'][:7]})"
+    )
+
+    if enable_pages:
+        reporter.stage("Switch GitHub Pages to GitHub Actions")
+        try:
+            client.configure_pages_actions(owner_target, repo_target)
+        except GitHubError as exc:
+            print(f"⚠️ Failed to configure GitHub Pages: {exc}", file=sys.stderr)
+        else:
+            reporter.success("Switched to GitHub Actions deployment")
+            try:
+                pages_info = client.get_pages_info(owner_target, repo_target)
+            except GitHubError as exc:
+                print(f"⚠️ Failed to retrieve GitHub Pages info: {exc}", file=sys.stderr)
+            else:
+                html_url = pages_info.get("html_url")
+                if html_url:
+                    reporter.stage("Update repository website URL", html_url)
+                    try:
+                        client.update_repository(owner_target, repo_target, homepage=html_url)
+                    except GitHubError as exc:
+                        print(f"⚠️ Failed to update website URL: {exc}", file=sys.stderr)
+                    else:
+                        reporter.success("Updated repository website field")
+
+    reporter.flush("Finishing touches")
+    return 0
+
+
+def sync_agent(args: argparse.Namespace) -> int:
+    """Sync AI agent guideline files (Claude.md, GEMINI.md, AGENT.md) to a GitHub repository."""
+    token = _require_token(args.token)
+    client = GitHubClient(token=token, api_url=args.api_url)
+    owner, repo = parse_repo(args.repo)
+
+    reporter = ProgressReporter()
+    reporter.stage("Prepare agent guideline files", "Scanning for agent files")
+
+    # Define the agent guideline files to sync
+    agent_files = ["Claude.md", "GEMINI.md", "AGENT.md"]
+    base_path = Path.cwd()
+    files_to_sync = []
+
+    # Check which files exist
+    for agent_file in agent_files:
+        file_path = base_path / agent_file
+        if file_path.exists():
+            files_to_sync.append((agent_file, file_path))
+            reporter.info(f"Found {agent_file}")
+        else:
+            reporter.info(f"Skipped {agent_file} (not found)")
+
+    if not files_to_sync:
+        print("❌ No agent guideline files found to sync (Claude.md, GEMINI.md, AGENT.md)", file=sys.stderr)
+        return 1
+
+    reporter.success(f"Found {len(files_to_sync)} agent guideline file(s) to sync")
+    reporter.flush("File preparation")
+
+    # Get target branch
+    reporter.stage("Inspect target branch", args.repo)
+    target_branch = args.branch or client.get_default_branch(owner, repo)
+    commit_message = args.message or "🤖 Sync AI agent guideline files (Claude.md, GEMINI.md, AGENT.md)"
+
+    reporter.info(f"Target: {owner}/{repo}@{target_branch}")
+    ref = client.get_ref(owner, repo, f"heads/{target_branch}")
+    base_commit_sha = ref["object"]["sha"]
+    base_commit = client.get_git_commit(owner, repo, base_commit_sha)
+    base_tree_sha = base_commit["tree"]["sha"]
+
+    # Create blobs and tree entries for each agent file
+    reporter.stage("Upload agent guideline files", "Creating blobs")
+    tree_entries = []
+
+    for file_name, file_path in files_to_sync:
+        content = file_path.read_bytes()
+        blob_sha = client.create_blob(owner, repo, content)
+        tree_entries.append({
+            "path": file_name,
+            "mode": "100644",
+            "type": "blob",
+            "sha": blob_sha,
+        })
+        reporter.info(f"Created blob for {file_name}")
+
+    reporter.success("All blobs created")
+
+    # Create new tree and commit
+    reporter.stage("Create commit", "Uploading new tree")
+    tree_sha = client.create_tree(owner, repo, tree_entries, base_tree=base_tree_sha)["sha"]
+    commit = client.create_commit(
+        owner,
+        repo,
+        commit_message,
+        tree_sha,
+        parents=[base_commit_sha],
+    )
+    client.update_ref(owner, repo, target_branch, commit["sha"], force=args.force)
+
+    reporter.success("Commit created")
+    reporter.flush("Sync steps")
+    reporter.list_panel("Updated files", [file_name for file_name, _ in files_to_sync])
+    reporter.success(
+        f"Synced {len(files_to_sync)} agent guideline file(s) to {owner}/{repo}@{target_branch} ({commit['sha'][:7]})"
+    )
+    reporter.flush("Results")
+    return 0
+
+
+def sync_workflows(args: argparse.Namespace) -> int:
+    # プリセット一覧表示 🎯
+    if hasattr(args, "list_presets") and args.list_presets:
+        print("📋 Available workflow presets:\n")
+        for name, description in list_presets():
+            print(f"  • {name:15} - {description}")
+        print("\nUsage: gal sync-workflows --preset <preset-name> --destination .")
+        return 0
+    
+    token = args.token or os.getenv("GITHUB_TOKEN")
+    client = GitHubClient(token=token, api_url=args.api_url)
+    owner, repo = parse_repo(args.template_repo)
+
+    reporter = ProgressReporter()
+    
+    # プリセット処理 🎯
+    workflow_files = None
+    prompt_files = None
+    agent_files = None
+    use_remote = getattr(args, "use_remote", False)
+
+    if hasattr(args, "preset") and args.preset:
+        reporter.stage("Load workflow preset", args.preset)
+        try:
+            preset_workflows, preset_use_remote, preset_prompts, preset_agents = get_preset_workflows(args.preset)
+            workflow_files = preset_workflows
+            prompt_files = preset_prompts
+            agent_files = preset_agents
+            # プリセットの use_remote を優先（明示的に指定されていない場合）
+            if not args.use_remote:
+                use_remote = preset_use_remote
+
+            # 読み込まれたファイルのサマリーを表示
+            summary_parts = []
+            if workflow_files:
+                summary_parts.append(f"{len(workflow_files)} workflow(s)")
+            if prompt_files:
+                summary_parts.append(f"{len(prompt_files)} prompt(s)")
+            if agent_files:
+                summary_parts.append(f"{len(agent_files)} agent(s)")
+            summary = ", ".join(summary_parts) if summary_parts else "no files"
+            reporter.success(f"Loaded preset '{args.preset}' with {summary}")
+        except KeyError as exc:
+            print(f"❌ {exc}", file=sys.stderr)
+            return 1
+    elif hasattr(args, "workflows") and args.workflows:
+        # 複数ワークフロー指定
+        workflow_files = args.workflows
+        reporter.stage("Prepare workflow files", f"{len(workflow_files)} files specified")
+    elif hasattr(args, "workflow") and args.workflow:
+        # 単一ワークフロー指定（下位互換性）
+        workflow_files = [args.workflow]
+    
+    reporter.stage("Fetch template archive", f"{owner}/{repo}")
+    archive = client.download_repository_archive(owner, repo, ref=args.ref)
+    reporter.success("Archive download completed")
+    reporter.flush("Preparation")
+
+    extra_files = ["index.html"] if args.include_index else None
+
+    if args.repo:
+        reporter.stage("Start remote sync", args.repo)
+        reporter.flush("Remote sync kickoff")
+        return _sync_workflows_remote(
+            client,
+            args.template_repo,
+            archive,
+            args.repo,
+            args.branch,
+            clean=args.clean,
+            commit_message=args.message,
+            force=args.force,
+            enable_pages=args.enable_pages_actions,
+            extra_files=extra_files,
+            overwrite_extras=args.overwrite_index,
+            overwrite_github=args.overwrite_github,
+            workflow_files=workflow_files,
+            prompt_files=prompt_files,
+            agent_files=agent_files,
+            use_remote=use_remote,
+        )
+
+    destination = Path(args.destination).expanduser().resolve()
+    reporter.stage("Start local sync", str(destination))
+    index_path = destination / "index.html"
+    index_exists_before = index_path.exists()
+    extraction = extract_github_directory(
+        archive,
+        destination,
+        clean=args.clean,
+        extra_files=extra_files,
+        overwrite_extras=args.overwrite_index,
+        overwrite_existing=args.overwrite_github,
+        workflow_files=workflow_files,
+        prompt_files=prompt_files,
+        agent_files=agent_files,
+        use_remote=use_remote,
+    )
+
+    if (
+        args.include_index
+        and not args.overwrite_index
+        and index_exists_before
+        and index_path not in extraction.written
+    ):
+        reporter.info("Preserved existing index.html without overwriting")
+
+    reporter.flush("Sync steps")
+    preserved_local = sorted(
+        path.relative_to(destination).as_posix() for path in extraction.skipped_existing
+    )
+    if preserved_local:
+        reporter.list_panel("Preserved files", preserved_local)
+    
+    # メッセージを条件分岐 🎯
+    if workflow_files:
+        reporter.list_panel(
+            f"Updated workflow{'s' if len(workflow_files) > 1 else ''}",
+            [path.relative_to(destination).as_posix() for path in extraction.written],
+        )
+        count = len(workflow_files)
+        reporter.success(f"{count} workflow{'s' if count > 1 else ''} synchronized from template")
+    else:
+        reporter.list_panel(
+            "Updated files",
+            [path.relative_to(destination).as_posix() for path in extraction.written],
+        )
+        reporter.success("Local .github directory synchronized with template")
+    reporter.flush("Results")
+    return 0
+
+
+def build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        prog="gemini-actions-lab-cli",
+        description="Utilities for managing Gemini Actions Lab GitHub repositories",
+    )
+    parser.add_argument(
+        "--api-url",
+        default="https://api.github.com",
+        help="Base URL for the GitHub API (override for GitHub Enterprise).",
+    )
+
+    subparsers = parser.add_subparsers(dest="command", required=True)
+
+    secrets_parser = subparsers.add_parser(
+        "sync-secrets", help="Create or update repository secrets from a .env file"
+    )
+    secrets_parser.add_argument("--repo", required=True, help="Target repository in owner/name format")
+    secrets_parser.add_argument(
+        "--env-file",
+        default=DEFAULT_SECRETS_FILE,
+        help=(
+            "Path to the .env file containing secret values (defaults to .secrets.env)."
+            " This file is separate from the runtime .env used to configure the CLI."
+        ),
+    )
+    secrets_parser.add_argument(
+        "--token", help="GitHub personal access token (defaults to the GITHUB_TOKEN env var)"
+    )
+    secrets_parser.set_defaults(func=sync_secrets)
+
+    workflows_parser = subparsers.add_parser(
+        "sync-workflows",
+        help="Download the .github directory from a template repository and copy it locally",
+    )
+    workflows_parser.add_argument(
+        "--template-repo",
+        default=DEFAULT_TEMPLATE_REPO,
+        help="Repository that hosts the canonical .github directory (owner/name)",
+    )
+    workflows_parser.add_argument(
+        "--ref", help="Optional Git reference (branch, tag, or commit SHA) to download"
+    )
+    workflows_parser.add_argument(
+        "--destination",
+        default=Path.cwd(),
+        help="Destination directory whose .github folder should be updated",
+    )
+    workflows_parser.add_argument(
+        "--repo",
+        help="When set, sync the template .github directory directly to this repository (owner/name)",
+    )
+    workflows_parser.add_argument(
+        "--branch",
+        help="Target branch to update when using --repo (defaults to the repository's default branch)",
+    )
+    workflows_parser.add_argument(
+        "--message",
+        help="Custom commit message when syncing to a remote repository",
+    )
+    workflows_parser.add_argument(
+        "--clean",
+        action="store_true",
+        help="Remove the existing .github directory before extracting the template",
+    )
+    workflows_parser.add_argument(
+        "--token", help="Optional GitHub token if the template repository is private"
+    )
+    workflows_parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Force update the target branch reference when syncing to a remote repository",
+    )
+    workflows_parser.add_argument(
+        "--enable-pages-actions",
+        action="store_true",
+        help="Also configure GitHub Pages to use GitHub Actions for builds when syncing to a remote repository",
+    )
+    workflows_parser.add_argument(
+        "--include-index",
+        action="store_true",
+        help="Copy the template repository root index.html alongside the .github directory",
+    )
+    workflows_parser.add_argument(
+        "--overwrite-index",
+        action="store_true",
+        help="When used with --include-index, allow overwriting an existing index.html",
+    )
+    workflows_parser.add_argument(
+        "--overwrite-github",
+        action="store_true",
+        help="Allow overwriting existing files inside the .github directory",
+    )
+    workflows_parser.add_argument(
+        "--workflow",
+        help="Specific workflow file name to copy (e.g., 'gemini-release-notes-remote.yml')",
+    )
+    workflows_parser.add_argument(
+        "--workflows",
+        nargs="+",
+        help="Multiple workflow file names to copy (e.g., 'gemini-cli.yml' 'pr-review-kozaki-remote.yml')",
+    )
+    workflows_parser.add_argument(
+        "--preset",
+        choices=["pr-review", "gemini-cli", "release", "imagen", "basic", "full-remote", "standard"],
+        help="Use a predefined set of workflows (overrides --workflow and --workflows)",
+    )
+    workflows_parser.add_argument(
+        "--list-presets",
+        action="store_true",
+        help="List all available workflow presets and exit",
+    )
+    workflows_parser.add_argument(
+        "--use-remote",
+        action="store_true",
+        help="When used with --workflow(s), prefer .github/workflows_remote over .github/workflows",
+    )
+    workflows_parser.set_defaults(func=sync_workflows)
+
+    agent_parser = subparsers.add_parser(
+        "sync-agent",
+        help="Sync AI agent guideline files (Claude.md, GEMINI.md, AGENT.md) to a GitHub repository",
+    )
+    agent_parser.add_argument(
+        "--repo",
+        required=True,
+        help="Target repository in owner/name format",
+    )
+    agent_parser.add_argument(
+        "--branch",
+        help="Target branch to update (defaults to the repository's default branch)",
+    )
+    agent_parser.add_argument(
+        "--message",
+        help="Custom commit message for the sync",
+    )
+    agent_parser.add_argument(
+        "--token",
+        help="GitHub personal access token (defaults to the GITHUB_TOKEN env var)",
+    )
+    agent_parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Force update the target branch reference",
+    )
+    agent_parser.set_defaults(func=sync_agent)
+
+    return parser
+
+
+def main(argv: Iterable[str] | None = None) -> int:
+    # Load the runtime configuration from the current directory's .env before
+    # parsing arguments so commands can rely on those environment variables.
+    apply_env_file(Path.cwd() / ".env", missing_ok=True)
+
+    parser = build_parser()
+    args = parser.parse_args(list(argv) if argv is not None else None)
+    _render_intro_animation()
+    try:
+        return args.func(args)
+    except (GitHubError, WorkflowSyncError, FileNotFoundError, ValueError) as exc:
+        print(f"❌ {exc}", file=sys.stderr)
+        return 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())

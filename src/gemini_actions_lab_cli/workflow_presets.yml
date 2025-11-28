@@ -1,0 +1,69 @@
+# Workflow presets for common sync scenarios 🎯
+# プリセット定義をYAMLで管理するよ〜✨
+
+presets:
+  pr-review:
+    description: "PR review workflows (Kozaki, Onizuka, Yukimura)"
+    use_remote: true
+    workflows:
+      - pr-review-kozaki-remote.yml
+      - pr-review-onizuka-remote.yml
+      - pr-review-yukimura-remote.yml
+
+  gemini-cli:
+    description: "Gemini CLI workflows (English and Japanese)"
+    use_remote: false
+    workflows:
+      - gemini-cli.yml
+      - gemini-jp-cli.yml
+
+  release:
+    description: "Release automation workflows"
+    use_remote: true
+    workflows:
+      - gemini-release-notes-remote.yml
+
+  imagen:
+    description: "Image generation workflows"
+    use_remote: false
+    workflows:
+      - imagen4-issue-trigger-and-commit.yml
+      - imagen4-generate-and-commit.yml
+
+  basic:
+    description: "Basic workflows for new repositories"
+    use_remote: false  # CLI は workflows、PR review は remote から
+    workflows:
+      - gemini-cli.yml
+      - gemini-jp-cli.yml
+      - pr-review-kozaki-remote.yml
+
+  full-remote:
+    description: "All remote workflows"
+    use_remote: true
+    workflows:
+      - pr-review-kozaki-remote.yml
+      - pr-review-onizuka-remote.yml
+      - pr-review-yukimura-remote.yml
+      - gemini-release-notes-remote.yml
+      - example-remote-script.yml
+      - huggingface-space-deploy-remote.yml
+
+  standard:
+    description: "Standard production workflows (CLI, Release, PR Review, Static Site)"
+    use_remote: false
+    prompts:
+      - release-image.en.txt
+      - reviewer-kozaki.md
+      - reviewer-onizuka.md
+      - reviewer-yukimura.md
+    agents:
+      - gal-agent.agent.md
+    workflows:
+      - gemini-cli.yml
+      - gemini-release-articles.yml
+      - gemini-release-notes.yml
+      - pr-review-kozaki.yml
+      - pr-review-onizuka.yml
+      - pr-review-yukimura.yml
+      - static-site.yml

@@ -38,6 +38,101 @@
     box-shadow: 0 0 0 2px var(--accent);
 }
 
+.layout {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    background-color: var(--bg-secondary);
+}
+
+.sidebar {
+    background-color: var(--bg-primary);
+    /* Dark background */
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+}
+
+.logo {
+    font-size: 1.5rem;
+    font-weight: 800;
+    letter-spacing: 1px;
+    color: var(--text-primary);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    line-height: 1.2;
+}
+
+.nav {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.navItem {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--text-secondary);
+    font-size: 1rem;
+    cursor: pointer;
+    padding: 10px 15px;
+    border-radius: var(--border-radius);
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.navItem:hover,
+.navItem.active {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: var(--text-primary);
+}
+
+.mainContent {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+}
+
+.header {
+    margin-bottom: 30px;
+}
+
+.pageTitle {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 20px;
+}
+
+.inputContainer {
+    margin-bottom: 20px;
+    max-width: 100%;
+}
+
+.repoInput {
+    width: 100%;
+    padding: 12px 20px;
+    border-radius: 999px;
+    border: none;
+    background-color: var(--bg-primary);
+    /* Darker input on light bg if swapped, but here main is light? Wait, global bg is dark. */
+    /* Let's assume main content bg is lighter or same? Reference image has dark sidebar, light content. */
+    /* But our global theme is dark. Let's stick to dark theme for now or invert if needed. */
+    /* Reference image: Dark Sidebar, Light Content. */
+    /* Let's try to match reference: Sidebar Dark, Main Light/White. */
+    background-color: #f5f5f5;
+    /* Light input background */
+    color: #333;
+    font-size: 1rem;
+    box-shadow: var(--shadow-sm);
+    outline: none;
+    transition: box-shadow 0.2s;
+}
+
+.repoInput:focus {
+    box-shadow: 0 0 0 2px var(--accent);
+}
+
 .grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));

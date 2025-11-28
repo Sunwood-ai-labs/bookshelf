@@ -46,55 +46,67 @@ export const Bookshelf: React.FC = () => {
     );
 
     return (
-        <div className={styles.shelfContainer}>
-            <header className={styles.header}>
-                <h1 className={styles.title}>Library</h1>
-
-                <div className={styles.inputContainer}>
-                    <input
-                        type="text"
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        placeholder="Search books..."
-                        className={styles.repoInput}
-                    />
+        <div className={styles.layout}>
+            {/* Sidebar */}
+            <aside className={styles.sidebar}>
+                <div className={styles.logo}>
+                    MANGA<br />STACK
                 </div>
 
-                <div className={styles.filters}>
-                    <span className={`${styles.chip} ${styles.active}`}>All</span>
-                    <span className={styles.chip}>Favorites</span>
-                    <span className={styles.chip}>Recent</span>
-                    <span className={styles.chip}>Manga</span>
-                    <span className={styles.chip}>Artbook</span>
-                </div>
-            </header>
+                {/* Navigation removed as per request - minimalist style */}
+            </aside>
 
-            {loading && <div className={styles.loading}>Loading...</div>}
+            {/* Main Content */}
+            <main className={styles.mainContent}>
+                <header className={styles.header}>
+                    <h1 className={styles.pageTitle}>Library</h1>
 
-            {error && <div className={styles.error}>{error}</div>}
+                    <div className={styles.inputContainer}>
+                        <input
+                            type="text"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            placeholder="Search..."
+                            className={styles.repoInput}
+                        />
+                    </div>
 
-            {!loading && !error && (
-                <div className={styles.grid}>
-                    {/* Upload Button is always first */}
-                    <UploadBook repo={repo} onUploadSuccess={handleUploadSuccess} />
+                    <div className={styles.filters}>
+                        <span className={`${styles.chip} ${styles.active}`}>All</span>
+                        <span className={styles.chip}>Action</span>
+                        <span className={styles.chip}>Fantasy</span>
+                        <span className={styles.chip}>Slice of Life</span>
+                        <span className={styles.chip}>Romance</span>
+                        <span className={styles.chip}>Sci-Fi</span>
+                    </div>
+                </header>
 
-                    {filteredBooks.map((book) => (
-                        <Book key={book.title} book={book} onClick={handleBookClick} />
-                    ))}
-                </div>
-            )}
+                {loading && <div className={styles.loading}>Loading...</div>}
 
-            {!loading && !error && filteredBooks.length === 0 && books.length > 0 && (
-                <p style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>
-                    No books match your search.
-                </p>
-            )}
+                {error && <div className={styles.error}>{error}</div>}
 
-            {!loading && !error && books.length === 0 && (
-                <p style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>
-                    No books found. Try adding one!
-                </p>
-            )}
+                {!loading && !error && (
+                    <div className={styles.grid}>
+                        <UploadBook repo={repo} onUploadSuccess={handleUploadSuccess} />
+
+                        {filteredBooks.map((book) => (
+                            <Book key={book.title} book={book} onClick={handleBookClick} />
+                        ))}
+                    </div>
+                )}
+
+                {!loading && !error && filteredBooks.length === 0 && books.length > 0 && (
+                    <p style={{ textAlign: 'center', color: '#666' }}>
+                        No books match your search.
+                    </p>
+                )}
+
+                {!loading && !error && books.length === 0 && (
+                    <p style={{ textAlign: 'center', color: '#666' }}>
+                        No books found. Try adding one!
+                    </p>
+                )}
+            </main>
 
             {selectedBook && (
                 <BookReader book={selectedBook} onClose={handleCloseReader} />

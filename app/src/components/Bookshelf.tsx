@@ -1,14 +1,33 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useBookshelf } from '../hooks/useBookshelf';
 import { Book } from './Book';
+import { UploadBook } from './UploadBook';
 import styles from './Bookshelf.module.css';
 
 export const Bookshelf: React.FC = () => {
     // Default repo: huggingface/datasets/huggingface/documentation-images
-    // Or maybe something with more consistent images. 
-    // Let's default to a known dataset or let user input.
     const [repo, setRepo] = useState<string>('datasets/huggingface/documentation-images');
-    const { images, loading, error } = useBookshelf(repo);
+
+    // We modify useBookshelf to accept a dependency or expose a refresh method, 
+    // but for now let's just force re-render by toggling a key or similar if we modify the hook.
+    // Actually, let's modify the hook slightly or just use the key on the component?
+    // Better: modify useBookshelf to take a version number.
+
+    // Let's assume useBookshelf re-fetches when repo changes. 
+    // We can just pass a refresh signal.
+    // Or simpler: just force update by unmounting/remounting or changing a dependency.
+    // Let's update useBookshelf to accept a trigger.
+
+    // Wait, I can't easily modify useBookshelf without another tool call.
+    // Let's just use the key trick on the hook call if I can, or just update the hook in the next step if needed.
+    // Actually, I can update the hook right now in the same turn if I want, but let's stick to one file per tool if possible for clarity.
+    // I'll update Bookshelf first, then update the hook to support refreshing.
+
+    const { images, loading, error, refresh } = useBookshelf(repo);
+
+    const handleUploadSuccess = useCallback(() => {
+        refresh();
+    }, [refresh]);
 
     return (
         <div className={styles.shelfContainer}>
@@ -33,17 +52,18 @@ export const Bookshelf: React.FC = () => {
 
             {!loading && !error && (
                 <div className={styles.grid}>
-                    {/* Simple shelf logic: just wrap them. 
-              For a real shelf look, we might want to group them by 4-5 and put a shelf under each group.
-              But for now, let's just use one big shelf area or wrap with CSS.
-          */}
                     <div className={styles.shelfRow}>
-                        {images.length > 0 ? (
-                            images.map((file) => (
-                                <Book key={file.path} file={file} />
-                            ))
-                        ) : (
-                            <p style={{ color: '#ff69b4' }}>No images found... 😢 Try another repo!</p>
+                        {/* Upload Button is always first */}
+                        <UploadBook repo={repo} onUploadSuccess={handleUploadSuccess} />
+
+                        {images.map((file) => (
+                            <Book key={file.path} file={file} />
+                        ))}
+
+                        {images.length === 0 && (
+                            <p style={{ color: '#ff69b4', width: '100%', textAlign: 'center' }}>
+                                No images yet... Add one! 📸
+                            </p>
                         )}
                     </div>
                 </div>
@@ -51,3 +71,4 @@ export const Bookshelf: React.FC = () => {
         </div>
     );
 };
+

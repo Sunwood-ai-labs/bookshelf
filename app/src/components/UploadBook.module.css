@@ -1,0 +1,92 @@
+.uploadContainer {
+    width: 150px;
+    height: 220px;
+    margin: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border: 3px dashed #ff69b4;
+    border-radius: 15px;
+    background: rgba(255, 255, 255, 0.5);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.uploadContainer:hover {
+    background: rgba(255, 182, 193, 0.3);
+    transform: translateY(-5px);
+    border-color: #ff1493;
+}
+
+.icon {
+    color: #ff69b4;
+    margin-bottom: 10px;
+}
+
+.label {
+    color: #ff1493;
+    font-weight: bold;
+    font-size: 0.9rem;
+    text-align: center;
+}
+
+.fileInput {
+    display: none;
+}
+
+.preview {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 12px;
+}
+
+.actions {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    transform: translateY(100%);
+    transition: transform 0.3s;
+}
+
+.uploadContainer:hover .actions,
+.uploadContainer.hasFile .actions {
+    transform: translateY(0);
+}
+
+.uploadBtn {
+    background: #ff1493;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 15px;
+    font-size: 0.8rem;
+    cursor: pointer;
+}
+
+.uploadBtn:hover {
+    background: #ff69b4;
+}
+
+.uploadBtn:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+}
+
+.tokenInput {
+    width: 90%;
+    padding: 5px;
+    border: 1px solid #ff69b4;
+    border-radius: 5px;
+    font-size: 0.7rem;
+    margin-bottom: 5px;
+}

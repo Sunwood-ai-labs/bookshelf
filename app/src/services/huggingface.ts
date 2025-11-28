@@ -38,3 +38,64 @@ export const getImagesFromRepo = async (repo: string): Promise<HFFile[]> => {
         throw error;
     }
 };
+
+export const uploadImage = async (
+    repo: string,
+    file: File,
+    token: string
+): Promise<void> => {
+    if (!token) {
+        throw new Error("Token is required for upload");
+    }
+
+    // Use the commit API for uploading
+    // POST /api/repos/{repo_id}/upload/{path} is deprecated or specific.
+    // Better to use the pre-signed URL flow or the commit API.
+    // For simplicity in browser, let's try the direct upload via the commit API if possible, 
+    // or the simple upload endpoint if it supports CORS.
+
+    // Actually, @huggingface/hub's uploadFile is great but might be heavy.
+    // Let's use a direct fetch to the commit API which is robust.
+    // Endpoint: https://huggingface.co/api/datasets/<repo>/commit/<revision>
+    // Or simpler: POST https://huggingface.co/api/datasets/<repo>/upload/<path> (if available)
+
+    // Let's try the standard LFS upload flow or just a simple commit.
+    // Simplest for single file: POST to https://huggingface.co/api/datasets/<repo>/commit/main
+
+    const path = file.name;
+    const buffer = await file.arrayBuffer();
+    const base64 = btoa(
+        new Uint8Array(buffer).reduce((data, byte) => data + String.fromCharCode(byte), '')
+    );
+
+    const isDataset = repo.startsWith("datasets/");
+    const repoId = isDataset ? repo.replace("datasets/", "") : repo;
+    const type = isDataset ? "dataset" : "model";
+
+    // Construct the commit payload
+    const payload = {
+        summary: `Upload ${path} from Gal's Bookshelf 💖`,
+        description: "Uploaded via Gal's Bookshelf App",
+        files: [
+            {
+                path: path,
+                encoding: "base64",
+                content: base64,
+            },
+        ],
+    };
+
+    const response = await fetch(`https://huggingface.co/api/${type}s/${repoId}/commit/main`, {
+        method: "POST",
+        headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Upload failed: ${response.status} ${response.statusText} - ${errorText}`);
+    }
+};

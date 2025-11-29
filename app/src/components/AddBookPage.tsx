@@ -18,8 +18,8 @@ export const AddBookPage: React.FC = () => {
     const [progress, setProgress] = useState('');
     const [token, setToken] = useState(import.meta.env.VITE_HF_TOKEN || localStorage.getItem('hf_token') || '');
 
-    // Default repo - ideally this should be passed or context, but hardcoding for now as per previous logic
-    const repo = "MakiAi/bookshelf-db";
+    // Default repo
+    const [repo, setRepo] = useState("datasets/MakiAi/bookshelf-db");
 
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -41,7 +41,7 @@ export const AddBookPage: React.FC = () => {
 
     const handleUpload = async (e: React.MouseEvent) => {
         e.preventDefault();
-        if (!title || files.length === 0 || !token) return;
+        if (!title || files.length === 0 || !token || !repo) return;
 
         setUploading(true);
         localStorage.setItem('hf_token', token);
@@ -163,6 +163,20 @@ export const AddBookPage: React.FC = () => {
                         />
                     </div>
 
+                    <div className={styles.formGroup}>
+                        <label className={styles.label}>Repository *</label>
+                        <input
+                            className={styles.input}
+                            type="text"
+                            value={repo}
+                            onChange={e => setRepo(e.target.value)}
+                            placeholder="datasets/username/repo-name"
+                        />
+                        <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                            Prefix with 'datasets/' for dataset repositories.
+                        </span>
+                    </div>
+
                     {!token && (
                         <div className={styles.formGroup}>
                             <label className={styles.label}>HF Write Token *</label>
@@ -214,7 +228,7 @@ export const AddBookPage: React.FC = () => {
                     <button
                         className={styles.submitBtn}
                         onClick={handleUpload}
-                        disabled={uploading || !title || files.length === 0 || !token}
+                        disabled={uploading || !title || files.length === 0 || !token || !repo}
                     >
                         {uploading ? (
                             <span>{progress || 'Uploading...'}</span>

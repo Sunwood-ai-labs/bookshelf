@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Image as ImageIcon } from 'lucide-react';
-import styles from './UploadBook.module.css'; // Reuse styles for now, or create new ones
+import { ArrowLeft, Image as ImageIcon, Upload } from 'lucide-react';
+import styles from './AddBookPage.module.css';
 import { uploadFile, BookMetadata } from '../services/huggingface';
 
 export const AddBookPage: React.FC = () => {
@@ -92,70 +92,99 @@ export const AddBookPage: React.FC = () => {
     };
 
     return (
-        <div className={styles.pageContainer}> {/* We'll need to add this class */}
-            <header className={styles.pageHeader}>
-                <button className={styles.backBtn} onClick={() => navigate('/')}>
-                    <ArrowLeft size={24} />
-                    <span>Back to Library</span>
-                </button>
-                <h1>Add New Book</h1>
-            </header>
+        <div className={styles.pageContainer}>
+            <div className={styles.contentWrapper}>
+                <header className={styles.header}>
+                    <button className={styles.backBtn} onClick={() => navigate('/')}>
+                        <ArrowLeft size={24} />
+                    </button>
+                    <h1 className={styles.title}>Add New Book</h1>
+                </header>
 
-            <div className={styles.formContainer}>
-                <div className={styles.formGroup}>
-                    <label>Title *</label>
-                    <input
-                        type="text"
-                        value={title}
-                        onChange={e => setTitle(e.target.value)}
-                        placeholder="Book Title"
-                    />
-                </div>
-
-                <div className={styles.row}>
+                <div className={styles.formSection}>
                     <div className={styles.formGroup}>
-                        <label>Author</label>
+                        <label className={styles.label}>Title *</label>
                         <input
+                            className={styles.input}
                             type="text"
-                            value={author}
-                            onChange={e => setAuthor(e.target.value)}
-                            placeholder="Author Name"
+                            value={title}
+                            onChange={e => setTitle(e.target.value)}
+                            placeholder="Enter book title..."
                         />
                     </div>
-                    <div className={styles.formGroup}>
-                        <label>Reading Direction</label>
-                        <select
-                            value={direction}
-                            onChange={e => setDirection(e.target.value as 'ltr' | 'rtl')}
-                        >
-                            <option value="rtl">Right to Left (Manga)</option>
-                            <option value="ltr">Left to Right</option>
-                        </select>
+
+                    <div className={styles.row}>
+                        <div className={styles.formGroup}>
+                            <label className={styles.label}>Author</label>
+                            <input
+                                className={styles.input}
+                                type="text"
+                                value={author}
+                                onChange={e => setAuthor(e.target.value)}
+                                placeholder="Author name"
+                            />
+                        </div>
+                        <div className={styles.formGroup}>
+                            <label className={styles.label}>Reading Direction</label>
+                            <select
+                                className={styles.select}
+                                value={direction}
+                                onChange={e => setDirection(e.target.value as 'ltr' | 'rtl')}
+                            >
+                                <option value="rtl">Right to Left (Manga)</option>
+                                <option value="ltr">Left to Right</option>
+                            </select>
+                        </div>
                     </div>
+
+                    <div className={styles.formGroup}>
+                        <label className={styles.label}>Description</label>
+                        <textarea
+                            className={styles.textarea}
+                            value={description}
+                            onChange={e => setDescription(e.target.value)}
+                            placeholder="What is this book about?"
+                            rows={4}
+                        />
+                    </div>
+
+                    <div className={styles.formGroup}>
+                        <label className={styles.label}>Tags</label>
+                        <input
+                            className={styles.input}
+                            type="text"
+                            value={tags}
+                            onChange={e => setTags(e.target.value)}
+                            placeholder="Action, Fantasy, 2025..."
+                        />
+                    </div>
+
+                    {!token && (
+                        <div className={styles.formGroup}>
+                            <label className={styles.label}>HF Write Token *</label>
+                            <input
+                                className={`${styles.input} ${styles.tokenInput}`}
+                                type="password"
+                                value={token}
+                                onChange={(e) => setToken(e.target.value)}
+                                placeholder="hf_..."
+                            />
+                        </div>
+                    )}
                 </div>
 
-                <div className={styles.formGroup}>
-                    <label>Description</label>
-                    <textarea
-                        value={description}
-                        onChange={e => setDescription(e.target.value)}
-                        placeholder="Synopsis..."
-                        rows={3}
-                    />
-                </div>
+                <div className={styles.previewSection}>
+                    <div className={`${styles.coverPreview} ${previews.length > 0 ? styles.hasImage : ''}`}>
+                        {previews.length > 0 ? (
+                            <img src={previews[0]} alt="Cover Preview" className={styles.coverImage} />
+                        ) : (
+                            <div className={styles.placeholder}>
+                                <ImageIcon size={48} strokeWidth={1} />
+                                <span>Cover Preview</span>
+                            </div>
+                        )}
+                    </div>
 
-                <div className={styles.formGroup}>
-                    <label>Tags (comma separated)</label>
-                    <input
-                        type="text"
-                        value={tags}
-                        onChange={e => setTags(e.target.value)}
-                        placeholder="Action, Fantasy, 2025..."
-                    />
-                </div>
-
-                <div className={styles.formGroup}>
-                    <label>Images *</label>
                     <div
                         className={styles.dropzone}
                         onClick={() => fileInputRef.current?.click()}
@@ -168,48 +197,29 @@ export const AddBookPage: React.FC = () => {
                             multiple
                             hidden
                         />
-                        <div className={styles.dropzoneContent}>
-                            <ImageIcon size={32} />
-                            <p>Click to select pages</p>
-                            <span>{files.length} files selected</span>
+                        <Upload size={32} />
+                        <div>
+                            <p style={{ margin: 0, fontWeight: 600 }}>Click to upload pages</p>
+                            <span style={{ fontSize: '0.8rem', opacity: 0.7 }}>JPG, PNG, WEBP supported</span>
                         </div>
+                        {files.length > 0 && (
+                            <span className={styles.fileCount}>{files.length} files selected</span>
+                        )}
                     </div>
 
-                    {previews.length > 0 && (
-                        <div className={styles.previews}>
-                            {previews.slice(0, 5).map((src, i) => (
-                                <img key={i} src={src} alt={`Page ${i}`} />
-                            ))}
-                            {previews.length > 5 && (
-                                <div className={styles.moreCount}>+{previews.length - 5}</div>
-                            )}
-                        </div>
-                    )}
-                </div>
-
-                <div className={styles.notice}>
-                    <p>⚠️ Uploaded data will be publicly available at <a href="https://huggingface.co/datasets/MakiAi/bookshelf-db" target="_blank" rel="noopener noreferrer">Hugging Face Datasets</a>.</p>
-                </div>
-
-                {!token && (
-                    <div className={styles.formGroup}>
-                        <label>HF Write Token *</label>
-                        <input
-                            type="password"
-                            value={token}
-                            onChange={(e) => setToken(e.target.value)}
-                            placeholder="hf_..."
-                        />
-                    </div>
-                )}
-
-                <div className={styles.actions}>
                     <button
                         className={styles.submitBtn}
                         onClick={handleUpload}
                         disabled={uploading || !title || files.length === 0 || !token}
                     >
-                        {uploading ? (progress || 'Uploading...') : 'Upload Book'}
+                        {uploading ? (
+                            <span>{progress || 'Uploading...'}</span>
+                        ) : (
+                            <>
+                                <Upload size={20} />
+                                <span>Upload Book</span>
+                            </>
+                        )}
                     </button>
                 </div>
             </div>

@@ -5,17 +5,20 @@
   line-height: 1.5;
   font-weight: 400;
 
-  /* Manga Stack Theme */
-  --bg-primary: #ffffff;
-  --bg-secondary: #f2f2f7;
-  --text-primary: #000000;
-  --text-secondary: #8e8e93;
-  --accent: #000000;
+  /* Manga Stack Theme (Dark Mode) */
+  --bg-primary: #09090b;
+  --bg-secondary: #18181b;
+  --text-primary: #fafafa;
+  --text-secondary: #a1a1aa;
+  --accent: #ff69b4;
+  /* Gal Pink 💖 */
+  --border-color: #27272a;
   --border-radius: 16px;
-  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.1);
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.6);
 
-  color-scheme: light;
+  color-scheme: dark;
   color: var(--text-primary);
   background-color: var(--bg-primary);
 

@@ -118,6 +118,46 @@ export const AddBookPage: React.FC = () => {
         }
     };
 
+    const jsonFileInputRef = useRef<HTMLInputElement>(null);
+
+    const handleJsonFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            try {
+                const text = event.target?.result as string;
+                setImportText(text); // Populate textarea for review
+
+                // Auto-apply or just let user review? Let's just populate textarea first so they can click Apply.
+                // Or we can just reuse the parsing logic.
+                // Let's reuse the logic by calling a helper or just setting state and calling handleImport? 
+                // handleImport uses 'importText' state. So if we setImportText, user can click Apply.
+                // But user might expect it to apply immediately.
+
+                // Let's try to parse immediately to be helpful.
+                const data = JSON.parse(text);
+                if (data.title) setTitle(data.title);
+                if (data.author) setAuthor(data.author);
+                if (data.description) setDescription(data.description);
+                if (data.tags) {
+                    if (Array.isArray(data.tags)) {
+                        setTags(data.tags.join(', '));
+                    } else {
+                        setTags(String(data.tags));
+                    }
+                }
+                if (data.direction) setDirection(data.direction);
+
+                alert('Metadata loaded from file! Review and click "Apply Metadata" if needed, or it is already applied.');
+            } catch (error) {
+                alert('Failed to parse JSON file');
+            }
+        };
+        reader.readAsText(file);
+    };
+
     return (
         <div className={styles.pageContainer}>
             <div className={styles.contentWrapper}>
@@ -143,6 +183,22 @@ export const AddBookPage: React.FC = () => {
 
                     {showImport && (
                         <div className={styles.importContainer}>
+                            <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
+                                <button
+                                    className={styles.secondaryBtn}
+                                    onClick={() => jsonFileInputRef.current?.click()}
+                                    type="button"
+                                >
+                                    Load JSON File
+                                </button>
+                                <input
+                                    type="file"
+                                    ref={jsonFileInputRef}
+                                    onChange={handleJsonFileChange}
+                                    accept=".json"
+                                    hidden
+                                />
+                            </div>
                             <textarea
                                 className={styles.textarea}
                                 value={importText}

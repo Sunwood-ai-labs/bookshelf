@@ -323,3 +323,42 @@
     border-color: var(--accent);
     color: var(--accent);
 }
+
+.tagsContainer {
+    margin-top: 10px;
+    background: var(--bg-primary);
+    padding: 12px;
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+}
+
+.tagsLabel {
+    display: block;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+    font-weight: 600;
+}
+
+.tagsList {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.tagChip {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.tagChip:hover {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+}

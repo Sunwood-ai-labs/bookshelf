@@ -4,6 +4,7 @@ import { ArrowLeft, Image as ImageIcon, Upload, FileJson } from 'lucide-react';
 import styles from './AddBookPage.module.css';
 import { commitBook, BookMetadata } from '../services/huggingface';
 import { ThemeToggle } from './ThemeToggle';
+import { useBookshelf } from '../hooks/useBookshelf';
 
 export const AddBookPage: React.FC = () => {
     const navigate = useNavigate();
@@ -12,6 +13,8 @@ export const AddBookPage: React.FC = () => {
     const [description, setDescription] = useState('');
     const [tags, setTags] = useState('');
     const [direction, setDirection] = useState<'ltr' | 'rtl'>('rtl');
+    const [xId, setXId] = useState('');
+    const [customFolderName, setCustomFolderName] = useState('');
     const [files, setFiles] = useState<File[]>([]);
     const [previews, setPreviews] = useState<string[]>([]);
     const [uploading, setUploading] = useState(false);
@@ -20,6 +23,10 @@ export const AddBookPage: React.FC = () => {
 
     // Default repo
     const [repo, setRepo] = useState("datasets/MakiAi/bookshelf-db");
+
+    // Fetch existing books to get tags
+    const { books } = useBookshelf(repo);
+    const existingTags = Array.from(new Set(books.flatMap(book => book.metadata?.tags || []))).sort();
 
     const [showImport, setShowImport] = useState(false);
     const [importText, setImportText] = useState('');
@@ -38,6 +45,8 @@ export const AddBookPage: React.FC = () => {
                 }
             }
             if (data.direction) setDirection(data.direction);
+            if (data.x_id) setXId(data.x_id);
+            if (data.folderName) setCustomFolderName(data.folderName);
 
             setShowImport(false);
             setImportText('');
@@ -79,13 +88,17 @@ export const AddBookPage: React.FC = () => {
                 description,
                 tags: tags.split(',').map(t => t.trim()).filter(Boolean),
                 direction,
-                cover: files[0].name // Default first image as cover
+                cover: files[0].name, // Default first image as cover
+                x_id: xId || undefined
             };
 
             setProgress('Uploading book...');
 
+            // Use custom folder name if provided, otherwise sanitize title
+            const folderName = customFolderName.trim() || title.trim().replace(/[^a-zA-Z0-9\u3000-\u303f\u3040-\u309f\u30a0-\u30ff\uff00-\uff9f\u4e00-\u9faf\-_]/g, '_');
+
             // Use batch commit with LFS support
-            await commitBook(repo, token, metadata, files, title);
+            await commitBook(repo, token, metadata, files, title, folderName);
 
             alert('Book added successfully! 🎉');
             navigate('/'); // Go back to library
@@ -129,6 +142,8 @@ export const AddBookPage: React.FC = () => {
                     }
                 }
                 if (data.direction) setDirection(data.direction);
+                if (data.x_id) setXId(data.x_id);
+                if (data.folderName) setCustomFolderName(data.folderName);
 
                 alert('Metadata loaded from file! Review and click "Apply Metadata" if needed, or it is already applied.');
             } catch (error) {
@@ -204,6 +219,20 @@ export const AddBookPage: React.FC = () => {
                         />
                     </div>
 
+                    <div className={styles.formGroup}>
+                        <label className={styles.label}>Folder Name (Optional)</label>
+                        <input
+                            className={styles.input}
+                            type="text"
+                            value={customFolderName}
+                            onChange={e => setCustomFolderName(e.target.value)}
+                            placeholder="Auto-generated from title if empty"
+                        />
+                        <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                            Specify a custom folder name for the repository.
+                        </span>
+                    </div>
+
                     <div className={styles.row}>
                         <div className={styles.formGroup}>
                             <label className={styles.label}>Author</label>
@@ -216,16 +245,27 @@ export const AddBookPage: React.FC = () => {
                             />
                         </div>
                         <div className={styles.formGroup}>
-                            <label className={styles.label}>Reading Direction</label>
-                            <select
-                                className={styles.select}
-                                value={direction}
-                                onChange={e => setDirection(e.target.value as 'ltr' | 'rtl')}
-                            >
-                                <option value="rtl">Right to Left (Manga)</option>
-                                <option value="ltr">Left to Right</option>
-                            </select>
+                            <label className={styles.label}>X (Twitter) ID</label>
+                            <input
+                                className={styles.input}
+                                type="text"
+                                value={xId}
+                                onChange={e => setXId(e.target.value)}
+                                placeholder="@username"
+                            />
                         </div>
+                    </div>
+
+                    <div className={styles.formGroup}>
+                        <label className={styles.label}>Reading Direction</label>
+                        <select
+                            className={styles.select}
+                            value={direction}
+                            onChange={e => setDirection(e.target.value as 'ltr' | 'rtl')}
+                        >
+                            <option value="rtl">Right to Left (Manga)</option>
+                            <option value="ltr">Left to Right</option>
+                        </select>
                     </div>
 
                     <div className={styles.formGroup}>
@@ -248,6 +288,28 @@ export const AddBookPage: React.FC = () => {
                             onChange={e => setTags(e.target.value)}
                             placeholder="Action, Fantasy, 2025..."
                         />
+                        {existingTags.length > 0 && (
+                            <div className={styles.tagsContainer}>
+                                <span className={styles.tagsLabel}>Existing Tags:</span>
+                                <div className={styles.tagsList}>
+                                    {existingTags.map(tag => (
+                                        <button
+                                            key={tag}
+                                            type="button"
+                                            className={styles.tagChip}
+                                            onClick={() => {
+                                                const currentTags = tags.split(',').map(t => t.trim()).filter(Boolean);
+                                                if (!currentTags.includes(tag)) {
+                                                    setTags([...currentTags, tag].join(', '));
+                                                }
+                                            }}
+                                        >
+                                            {tag}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
                     </div>
 
                     <div className={styles.formGroup}>

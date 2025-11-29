@@ -1,4 +1,4 @@
-import { listFiles } from "@huggingface/hub";
+import { listFiles, commit } from "@huggingface/hub";
 
 export interface HFFile {
     path: string;
@@ -26,6 +26,7 @@ const isImage = (path: string): boolean => {
 };
 
 export const getImagesFromRepo = async (repo: string): Promise<BookEntry[]> => {
+    // ... (keep existing implementation)
     try {
         // listFiles returns an AsyncGenerator
         const files: HFFile[] = [];
@@ -33,7 +34,7 @@ export const getImagesFromRepo = async (repo: string): Promise<BookEntry[]> => {
             if (file.type === 'file') {
                 files.push({
                     path: file.path,
-                    url: `https://huggingface.co/datasets/${repo}/resolve/main/${file.path}`
+                    url: `https://huggingface.co/datasets/${repo.replace('datasets/', '')}/resolve/main/${file.path}`
                 });
             }
         }
@@ -52,7 +53,9 @@ export const getImagesFromRepo = async (repo: string): Promise<BookEntry[]> => {
                     const images = folderMap.get(folderName) || [];
                     // Construct direct URL
                     // repo already contains "datasets/" prefix if applicable
-                    file.url = `https://huggingface.co/${repo}/resolve/main/${file.path}`;
+                    // We need to be careful about the URL construction
+                    const repoName = repo.replace('datasets/', '');
+                    file.url = `https://huggingface.co/datasets/${repoName}/resolve/main/${file.path}`;
                     images.push(file);
                     folderMap.set(folderName, images);
                 }
@@ -60,7 +63,8 @@ export const getImagesFromRepo = async (repo: string): Promise<BookEntry[]> => {
                 // Root files - group in "Misc"
                 const folderName = "Misc";
                 const images = folderMap.get(folderName) || [];
-                file.url = `https://huggingface.co/${repo}/resolve/main/${file.path}`;
+                const repoName = repo.replace('datasets/', '');
+                file.url = `https://huggingface.co/datasets/${repoName}/resolve/main/${file.path}`;
                 images.push(file);
                 folderMap.set(folderName, images);
             }
@@ -80,8 +84,8 @@ export const getImagesFromRepo = async (repo: string): Promise<BookEntry[]> => {
                 if (metadataPath) {
                     try {
                         // Use 'raw' instead of 'resolve' for metadata to avoid CORS issues with redirects
-                        // repo already contains "datasets/" prefix
-                        const metaUrl = `https://huggingface.co/${repo}/raw/main/${metadataPath}`;
+                        const repoName = repo.replace('datasets/', '');
+                        const metaUrl = `https://huggingface.co/datasets/${repoName}/raw/main/${metadataPath}`;
                         const metaRes = await fetch(metaUrl);
                         if (metaRes.ok) {
                             metadata = await metaRes.json();
@@ -116,63 +120,6 @@ export const getImagesFromRepo = async (repo: string): Promise<BookEntry[]> => {
     }
 };
 
-export const uploadFile = async (
-    repo: string,
-    file: File | string,
-    path: string,
-    token: string
-): Promise<void> => {
-    if (!token) {
-        throw new Error("Token is required for upload");
-    }
-
-    let content: string;
-    let encoding: string;
-
-    if (typeof file === 'string') {
-        // Text content (e.g., JSON)
-        content = btoa(unescape(encodeURIComponent(file))); // Handle UTF-8 characters
-        encoding = "base64";
-    } else {
-        // Binary content (File)
-        const buffer = await file.arrayBuffer();
-        content = btoa(
-            new Uint8Array(buffer).reduce((data, byte) => data + String.fromCharCode(byte), '')
-        );
-        encoding = "base64";
-    }
-
-    const isDataset = repo.startsWith("datasets/");
-    const repoId = isDataset ? repo.replace("datasets/", "") : repo;
-    const type = isDataset ? "dataset" : "model";
-
-    // Construct the commit payload
-    const payload = {
-        summary: `Upload ${path} from Manga Stack 💖`,
-        description: "Uploaded via Manga Stack App",
-        files: [
-            {
-                path: path,
-                encoding: encoding,
-                content: content,
-            },
-        ],
-    };
-
-    const response = await fetch(`https://huggingface.co/api/${type}s/${repoId}/commit/main`, {
-        method: "POST",
-        headers: {
-            "Authorization": `Bearer ${token}`,
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-    });
-
-    if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Upload failed: ${response.status} ${response.statusText} - ${errorText}`);
-    }
-};
 export const commitBook = async (
     repo: string,
     token: string,
@@ -185,56 +132,38 @@ export const commitBook = async (
     }
 
     const folderName = title.trim().replace(/[^a-zA-Z0-9\u3000-\u303f\u3040-\u309f\u30a0-\u30ff\uff00-\uff9f\u4e00-\u9faf\-_]/g, '_');
-    const commitFiles: { path: string; encoding: string; content: string }[] = [];
 
-    // 1. Add .gitattributes to ensure LFS tracking for images
-    commitFiles.push({
-        path: ".gitattributes",
-        encoding: "utf-8",
-        content: "*.png filter=lfs diff=lfs merge=lfs -text\n*.jpg filter=lfs diff=lfs merge=lfs -text\n*.jpeg filter=lfs diff=lfs merge=lfs -text\n*.webp filter=lfs diff=lfs merge=lfs -text\n*.gif filter=lfs diff=lfs merge=lfs -text"
-    });
+    const operations: any[] = [];
 
-    // 2. Add Metadata
-    commitFiles.push({
+    // 1. Add Metadata
+    const metadataBlob = new Blob([JSON.stringify(metadata, null, 2)], { type: "application/json" });
+    operations.push({
+        operation: "addOrUpdate",
         path: `${folderName}/metadata.json`,
-        encoding: "base64",
-        content: btoa(unescape(encodeURIComponent(JSON.stringify(metadata, null, 2))))
+        content: metadataBlob
     });
 
-    // 3. Add Images
+    // 2. Add Images
     for (const file of files) {
-        const buffer = await file.arrayBuffer();
-        const content = btoa(
-            new Uint8Array(buffer).reduce((data, byte) => data + String.fromCharCode(byte), '')
-        );
-        commitFiles.push({
+        operations.push({
+            operation: "addOrUpdate",
             path: `${folderName}/${file.name}`,
-            encoding: "base64",
-            content: content
+            content: file
         });
     }
 
+    // Determine repo type and name
+    // The library expects "username/repo" for name, and type property for datasets
     const isDataset = repo.startsWith("datasets/");
-    const repoId = isDataset ? repo.replace("datasets/", "") : repo;
-    const type = isDataset ? "dataset" : "model";
+    const repoName = isDataset ? repo.replace("datasets/", "") : repo;
 
-    const payload = {
-        summary: `Add book: ${title} 📚`,
-        description: "Uploaded via Manga Stack App",
-        files: commitFiles,
-    };
-
-    const response = await fetch(`https://huggingface.co/api/${type}s/${repoId}/commit/main`, {
-        method: "POST",
-        headers: {
-            "Authorization": `Bearer ${token}`,
-            "Content-Type": "application/json",
+    await commit({
+        credentials: { accessToken: token },
+        repo: {
+            type: isDataset ? "dataset" : "model",
+            name: repoName
         },
-        body: JSON.stringify(payload),
+        operations: operations,
+        title: `Add book: ${title} 📚`,
     });
-
-    if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Upload failed: ${response.status} ${response.statusText} - ${errorText}`);
-    }
 };

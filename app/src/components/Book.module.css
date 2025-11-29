@@ -64,3 +64,38 @@
   border-radius: 4px;
   white-space: nowrap;
 }
+
+.landscape {
+  grid-column: span 2;
+}
+
+.landscape .coverWrapper {
+  aspect-ratio: 16 / 9;
+}
+
+.xLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  transition: color 0.2s;
+  margin-left: auto;
+  padding: 4px;
+}
+
+.xLink:hover {
+  color: var(--text-primary);
+}
+
+.headerRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.headerRow .title {
+  margin-bottom: 0;
+  flex: 1;
+}

@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Image as ImageIcon, Upload, FileJson } from 'lucide-react';
 import styles from './AddBookPage.module.css';
-import { uploadFile, BookMetadata } from '../services/huggingface';
+import { commitBook, BookMetadata } from '../services/huggingface';
 import { ThemeToggle } from './ThemeToggle';
 
 export const AddBookPage: React.FC = () => {
@@ -73,10 +73,6 @@ export const AddBookPage: React.FC = () => {
         localStorage.setItem('hf_token', token);
 
         try {
-            // 1. Create Folder Name (Sanitize Title)
-            const folderName = title.trim().replace(/[^a-zA-Z0-9\u3000-\u303f\u3040-\u309f\u30a0-\u30ff\uff00-\uff9f\u4e00-\u9faf\-_]/g, '_');
-
-            // 2. Prepare Metadata
             const metadata: BookMetadata = {
                 title,
                 author,
@@ -86,26 +82,10 @@ export const AddBookPage: React.FC = () => {
                 cover: files[0].name // Default first image as cover
             };
 
-            setProgress('Uploading metadata...');
+            setProgress('Uploading book...');
 
-            // 3. Upload Metadata
-            await uploadFile(
-                repo,
-                JSON.stringify(metadata, null, 2),
-                `${folderName}/metadata.json`,
-                token
-            );
-
-            // 4. Upload Images
-            for (let i = 0; i < files.length; i++) {
-                setProgress(`Uploading image ${i + 1}/${files.length}...`);
-                await uploadFile(
-                    repo,
-                    files[i],
-                    `${folderName}/${files[i].name}`,
-                    token
-                );
-            }
+            // Use batch commit with LFS support
+            await commitBook(repo, token, metadata, files, title);
 
             alert('Book added successfully! 🎉');
             navigate('/'); // Go back to library

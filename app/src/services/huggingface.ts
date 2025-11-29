@@ -173,3 +173,68 @@ export const uploadFile = async (
         throw new Error(`Upload failed: ${response.status} ${response.statusText} - ${errorText}`);
     }
 };
+export const commitBook = async (
+    repo: string,
+    token: string,
+    metadata: BookMetadata,
+    files: File[],
+    title: string
+): Promise<void> => {
+    if (!token) {
+        throw new Error("Token is required for upload");
+    }
+
+    const folderName = title.trim().replace(/[^a-zA-Z0-9\u3000-\u303f\u3040-\u309f\u30a0-\u30ff\uff00-\uff9f\u4e00-\u9faf\-_]/g, '_');
+    const commitFiles: { path: string; encoding: string; content: string }[] = [];
+
+    // 1. Add .gitattributes to ensure LFS tracking for images
+    commitFiles.push({
+        path: ".gitattributes",
+        encoding: "utf-8",
+        content: "*.png filter=lfs diff=lfs merge=lfs -text\n*.jpg filter=lfs diff=lfs merge=lfs -text\n*.jpeg filter=lfs diff=lfs merge=lfs -text\n*.webp filter=lfs diff=lfs merge=lfs -text\n*.gif filter=lfs diff=lfs merge=lfs -text"
+    });
+
+    // 2. Add Metadata
+    commitFiles.push({
+        path: `${folderName}/metadata.json`,
+        encoding: "base64",
+        content: btoa(unescape(encodeURIComponent(JSON.stringify(metadata, null, 2))))
+    });
+
+    // 3. Add Images
+    for (const file of files) {
+        const buffer = await file.arrayBuffer();
+        const content = btoa(
+            new Uint8Array(buffer).reduce((data, byte) => data + String.fromCharCode(byte), '')
+        );
+        commitFiles.push({
+            path: `${folderName}/${file.name}`,
+            encoding: "base64",
+            content: content
+        });
+    }
+
+    const isDataset = repo.startsWith("datasets/");
+    const repoId = isDataset ? repo.replace("datasets/", "") : repo;
+    const type = isDataset ? "dataset" : "model";
+
+    const payload = {
+        summary: `Add book: ${title} 📚`,
+        description: "Uploaded via Manga Stack App",
+        files: commitFiles,
+    };
+
+    const response = await fetch(`https://huggingface.co/api/${type}s/${repoId}/commit/main`, {
+        method: "POST",
+        headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Upload failed: ${response.status} ${response.statusText} - ${errorText}`);
+    }
+};

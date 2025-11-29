@@ -1,5 +1,7 @@
 # Local secrets and environment files
 discord-issue-bot/.env
+app/.env
+app/.env.local
 
 # Python caches
 __pycache__/

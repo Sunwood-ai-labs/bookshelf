@@ -16,7 +16,7 @@ export const AddBookPage: React.FC = () => {
     const [previews, setPreviews] = useState<string[]>([]);
     const [uploading, setUploading] = useState(false);
     const [progress, setProgress] = useState('');
-    const [token, setToken] = useState(localStorage.getItem('hf_token') || '');
+    const [token, setToken] = useState(import.meta.env.VITE_HF_TOKEN || localStorage.getItem('hf_token') || '');
 
     // Default repo - ideally this should be passed or context, but hardcoding for now as per previous logic
     const repo = "MakiAi/bookshelf-db";

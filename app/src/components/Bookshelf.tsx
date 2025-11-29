@@ -29,9 +29,12 @@ export const Bookshelf: React.FC = () => {
         setSelectedBook(null);
     }, []);
 
-    const filteredBooks = books.filter(book =>
-        book.title.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    const filteredBooks = books.filter(book => {
+        const query = searchQuery.toLowerCase();
+        const titleMatch = book.title.toLowerCase().includes(query);
+        const tagsMatch = book.metadata?.tags?.some(tag => tag.toLowerCase().includes(query));
+        return titleMatch || tagsMatch;
+    });
 
     return (
         <div className={styles.layout}>

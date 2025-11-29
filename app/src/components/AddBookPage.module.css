@@ -324,6 +324,69 @@
     color: var(--accent);
 }
 
+.tagInputWrapper {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    padding: 8px 12px;
+    min-height: 48px;
+    display: flex;
+    align-items: center;
+    transition: all 0.2s;
+}
+
+.tagInputWrapper:focus-within {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 4px rgba(255, 105, 180, 0.1);
+}
+
+.selectedTags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    width: 100%;
+}
+
+.selectedTagChip {
+    background: var(--accent);
+    color: white;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    animation: fadeIn 0.2s ease-out;
+}
+
+.selectedTagChip button {
+    background: none;
+    border: none;
+    padding: 0;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    opacity: 0.8;
+    transition: opacity 0.2s;
+}
+
+.selectedTagChip button:hover {
+    opacity: 1;
+}
+
+.tagInput {
+    background: transparent;
+    border: none;
+    color: var(--text-primary);
+    font-size: 1rem;
+    outline: none;
+    flex: 1;
+    min-width: 120px;
+    padding: 4px 0;
+}
+
 .tagsContainer {
     margin-top: 10px;
     background: var(--bg-primary);
@@ -358,6 +421,12 @@
 }
 
 .tagChip:hover {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+}
+
+.tagChip.active {
     background: var(--accent);
     color: white;
     border-color: var(--accent);

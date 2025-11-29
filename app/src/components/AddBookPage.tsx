@@ -1,17 +1,21 @@
 import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Image as ImageIcon, Upload, FileJson } from 'lucide-react';
+import { ArrowLeft, Image as ImageIcon, Upload, FileJson, X as CloseIcon } from 'lucide-react';
 import styles from './AddBookPage.module.css';
 import { commitBook, BookMetadata } from '../services/huggingface';
 import { ThemeToggle } from './ThemeToggle';
 import { useBookshelf } from '../hooks/useBookshelf';
+import { useToast } from '../context/ToastContext';
 
 export const AddBookPage: React.FC = () => {
     const navigate = useNavigate();
+    const { showToast } = useToast();
+
     const [title, setTitle] = useState('');
     const [author, setAuthor] = useState('');
     const [description, setDescription] = useState('');
-    const [tags, setTags] = useState('');
+    const [tags, setTags] = useState<string[]>([]);
+    const [tagInput, setTagInput] = useState('');
     const [direction, setDirection] = useState<'ltr' | 'rtl'>('rtl');
     const [xId, setXId] = useState('');
     const [customFolderName, setCustomFolderName] = useState('');
@@ -39,9 +43,9 @@ export const AddBookPage: React.FC = () => {
             if (data.description) setDescription(data.description);
             if (data.tags) {
                 if (Array.isArray(data.tags)) {
-                    setTags(data.tags.join(', '));
+                    setTags(data.tags);
                 } else {
-                    setTags(String(data.tags));
+                    setTags(String(data.tags).split(',').map(t => t.trim()).filter(Boolean));
                 }
             }
             if (data.direction) setDirection(data.direction);
@@ -50,9 +54,9 @@ export const AddBookPage: React.FC = () => {
 
             setShowImport(false);
             setImportText('');
-            alert('Metadata imported successfully! (Note: Cover image must be selected manually)');
+            showToast('Metadata imported successfully! (Note: Cover image must be selected manually)', 'success');
         } catch (e) {
-            alert('Invalid JSON format');
+            showToast('Invalid JSON format', 'error');
         }
     };
 
@@ -76,7 +80,10 @@ export const AddBookPage: React.FC = () => {
 
     const handleUpload = async (e: React.MouseEvent) => {
         e.preventDefault();
-        if (!title || files.length === 0 || !token || !repo) return;
+        if (!title || files.length === 0 || !token || !repo) {
+            showToast('Please fill in all required fields', 'error');
+            return;
+        }
 
         setUploading(true);
         localStorage.setItem('hf_token', token);
@@ -86,7 +93,7 @@ export const AddBookPage: React.FC = () => {
                 title,
                 author,
                 description,
-                tags: tags.split(',').map(t => t.trim()).filter(Boolean),
+                tags: tags,
                 direction,
                 cover: files[0].name, // Default first image as cover
                 x_id: xId || undefined
@@ -100,11 +107,11 @@ export const AddBookPage: React.FC = () => {
             // Use batch commit with LFS support
             await commitBook(repo, token, metadata, files, title, folderName);
 
-            alert('Book added successfully! 🎉');
-            navigate('/'); // Go back to library
+            showToast('Book added successfully! 🎉', 'success');
+            setTimeout(() => navigate('/'), 1500);
         } catch (error) {
             console.error(error);
-            alert(`Upload failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            showToast(`Upload failed: ${error instanceof Error ? error.message : 'Unknown error'}`, 'error');
         } finally {
             setUploading(false);
             setProgress('');
@@ -136,21 +143,40 @@ export const AddBookPage: React.FC = () => {
                 if (data.description) setDescription(data.description);
                 if (data.tags) {
                     if (Array.isArray(data.tags)) {
-                        setTags(data.tags.join(', '));
+                        setTags(data.tags);
                     } else {
-                        setTags(String(data.tags));
+                        setTags(String(data.tags).split(',').map(t => t.trim()).filter(Boolean));
                     }
                 }
                 if (data.direction) setDirection(data.direction);
                 if (data.x_id) setXId(data.x_id);
                 if (data.folderName) setCustomFolderName(data.folderName);
 
-                alert('Metadata loaded from file! Review and click "Apply Metadata" if needed, or it is already applied.');
+                showToast('Metadata loaded from file! Review and click "Apply Metadata" if needed.', 'success');
             } catch (error) {
-                alert('Failed to parse JSON file');
+                showToast('Failed to parse JSON file', 'error');
             }
         };
         reader.readAsText(file);
+    };
+
+    const addTag = (tag: string) => {
+        const trimmed = tag.trim();
+        if (trimmed && !tags.includes(trimmed)) {
+            setTags([...tags, trimmed]);
+        }
+        setTagInput('');
+    };
+
+    const removeTag = (tagToRemove: string) => {
+        setTags(tags.filter(tag => tag !== tagToRemove));
+    };
+
+    const handleTagKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === 'Enter' || e.key === ',') {
+            e.preventDefault();
+            addTag(tagInput);
+        }
     };
 
     return (
@@ -281,13 +307,28 @@ export const AddBookPage: React.FC = () => {
 
                     <div className={styles.formGroup}>
                         <label className={styles.label}>Tags</label>
-                        <input
-                            className={styles.input}
-                            type="text"
-                            value={tags}
-                            onChange={e => setTags(e.target.value)}
-                            placeholder="Action, Fantasy, 2025..."
-                        />
+                        <div className={styles.tagInputWrapper}>
+                            <div className={styles.selectedTags}>
+                                {tags.map(tag => (
+                                    <span key={tag} className={styles.selectedTagChip}>
+                                        {tag}
+                                        <button type="button" onClick={() => removeTag(tag)}>
+                                            <CloseIcon size={12} />
+                                        </button>
+                                    </span>
+                                ))}
+                                <input
+                                    className={styles.tagInput}
+                                    type="text"
+                                    value={tagInput}
+                                    onChange={e => setTagInput(e.target.value)}
+                                    onKeyDown={handleTagKeyDown}
+                                    onBlur={() => addTag(tagInput)}
+                                    placeholder={tags.length === 0 ? "Action, Fantasy..." : ""}
+                                />
+                            </div>
+                        </div>
+
                         {existingTags.length > 0 && (
                             <div className={styles.tagsContainer}>
                                 <span className={styles.tagsLabel}>Existing Tags:</span>
@@ -296,13 +337,8 @@ export const AddBookPage: React.FC = () => {
                                         <button
                                             key={tag}
                                             type="button"
-                                            className={styles.tagChip}
-                                            onClick={() => {
-                                                const currentTags = tags.split(',').map(t => t.trim()).filter(Boolean);
-                                                if (!currentTags.includes(tag)) {
-                                                    setTags([...currentTags, tag].join(', '));
-                                                }
-                                            }}
+                                            className={`${styles.tagChip} ${tags.includes(tag) ? styles.active : ''}`}
+                                            onClick={() => !tags.includes(tag) ? addTag(tag) : removeTag(tag)}
                                         >
                                             {tag}
                                         </button>

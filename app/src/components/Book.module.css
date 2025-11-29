@@ -48,3 +48,56 @@
   font-size: 0.8rem;
   color: var(--text-secondary);
 }
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 6px;
+}
+
+.tag {
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+  background-color: var(--bg-secondary);
+  padding: 2px 6px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.landscape {
+  grid-column: span 2;
+}
+
+.landscape .coverWrapper {
+  aspect-ratio: 7 / 5;
+}
+
+.xLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  transition: all 0.2s;
+  margin-left: auto;
+  padding: 4px;
+  border-radius: 50%;
+}
+
+.xLink:hover {
+  color: white;
+  background-color: var(--accent);
+}
+
+.headerRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.headerRow .title {
+  margin-bottom: 0;
+  flex: 1;
+}

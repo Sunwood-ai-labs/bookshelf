@@ -5,16 +5,10 @@ import { useBookshelf } from '../hooks/useBookshelf';
 import { Book } from './Book';
 import { BookReader } from './BookReader';
 import { BookEntry } from '../services/huggingface';
+import { ThemeToggle } from './ThemeToggle';
 import styles from './Bookshelf.module.css';
 
 export const Bookshelf: React.FC = () => {
-    // We modify useBookshelf to accept a dependency or expose a refresh method, 
-    // but for now let's just force re-render by toggling a key or similar if we modify the hook.
-    // Actually, let's modify the hook slightly or just use the key on the component?
-    // Better: modify useBookshelf to take a version number.
-
-    // Let's assume useBookshelf re-fetches when repo changes. 
-    // We can just pass a refresh signal.
     // Default repo: datasets/MakiAi/bookshelf-db
     const [repo] = useState<string>('datasets/MakiAi/bookshelf-db');
     const { books, loading, error } = useBookshelf(repo);
@@ -29,9 +23,12 @@ export const Bookshelf: React.FC = () => {
         setSelectedBook(null);
     }, []);
 
-    const filteredBooks = books.filter(book =>
-        book.title.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    const filteredBooks = books.filter(book => {
+        const query = searchQuery.toLowerCase();
+        const titleMatch = book.title.toLowerCase().includes(query);
+        const tagsMatch = book.metadata?.tags?.some(tag => tag.toLowerCase().includes(query));
+        return titleMatch || tagsMatch;
+    });
 
     return (
         <div className={styles.layout}>
@@ -59,13 +56,26 @@ export const Bookshelf: React.FC = () => {
                         />
                     </div>
 
+                    <div style={{ marginLeft: 'auto', marginRight: '20px' }}>
+                        <ThemeToggle />
+                    </div>
+
                     <div className={styles.filters}>
-                        <span className={`${styles.chip} ${styles.active}`}>All</span>
-                        <span className={styles.chip}>Action</span>
-                        <span className={styles.chip}>Fantasy</span>
-                        <span className={styles.chip}>Slice of Life</span>
-                        <span className={styles.chip}>Romance</span>
-                        <span className={styles.chip}>Sci-Fi</span>
+                        <span
+                            className={`${styles.chip} ${searchQuery === '' ? styles.active : ''}`}
+                            onClick={() => setSearchQuery('')}
+                        >
+                            All
+                        </span>
+                        {Array.from(new Set(books.flatMap(book => book.metadata?.tags || []))).sort().map(tag => (
+                            <span
+                                key={tag}
+                                className={`${styles.chip} ${searchQuery === tag ? styles.active : ''}`}
+                                onClick={() => setSearchQuery(tag)}
+                            >
+                                {tag}
+                            </span>
+                        ))}
                     </div>
                 </header>
 

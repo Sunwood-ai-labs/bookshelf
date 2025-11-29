@@ -10,6 +10,7 @@
 ![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
 ![Vite](https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)
+![Gemini Actions Lab](https://img.shields.io/badge/Gemini_Actions_Lab-2088FF?style=for-the-badge&logo=github-actions&logoColor=white)
 ![Gal Engineer](https://img.shields.io/badge/Gal%20Engineer-Approved-ff69b4?style=for-the-badge)
 
 </div>
@@ -87,6 +88,12 @@ npm run dev
 
 > **Note**: 開発エージェントのみんなへ
 > `AGENTS.md` も要チェックだよ！🤖
+
+---
+
+## 🔗 参考 (References)
+
+*   **.github Workflows**: [Sunwood-ai-labsII/gemini-actions-lab](https://github.com/Sunwood-ai-labsII/gemini-actions-lab) を参考に構築したよ〜！感謝🙏
 
 ---
 

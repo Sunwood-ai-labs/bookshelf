@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Image as ImageIcon, Upload } from 'lucide-react';
+import { ArrowLeft, Image as ImageIcon, Upload, FileJson } from 'lucide-react';
 import styles from './AddBookPage.module.css';
 import { uploadFile, BookMetadata } from '../services/huggingface';
 import { ThemeToggle } from './ThemeToggle';
@@ -20,6 +20,32 @@ export const AddBookPage: React.FC = () => {
 
     // Default repo
     const [repo, setRepo] = useState("datasets/MakiAi/bookshelf-db");
+
+    const [showImport, setShowImport] = useState(false);
+    const [importText, setImportText] = useState('');
+
+    const handleImport = () => {
+        try {
+            const data = JSON.parse(importText);
+            if (data.title) setTitle(data.title);
+            if (data.author) setAuthor(data.author);
+            if (data.description) setDescription(data.description);
+            if (data.tags) {
+                if (Array.isArray(data.tags)) {
+                    setTags(data.tags.join(', '));
+                } else {
+                    setTags(String(data.tags));
+                }
+            }
+            if (data.direction) setDirection(data.direction);
+
+            setShowImport(false);
+            setImportText('');
+            alert('Metadata imported successfully! (Note: Cover image must be selected manually)');
+        } catch (e) {
+            alert('Invalid JSON format');
+        }
+    };
 
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -106,6 +132,31 @@ export const AddBookPage: React.FC = () => {
                 </header>
 
                 <div className={styles.formSection}>
+                    <button
+                        className={styles.importBtn}
+                        onClick={() => setShowImport(!showImport)}
+                        type="button"
+                    >
+                        <FileJson size={20} />
+                        Import Metadata (JSON)
+                    </button>
+
+                    {showImport && (
+                        <div className={styles.importContainer}>
+                            <textarea
+                                className={styles.textarea}
+                                value={importText}
+                                onChange={e => setImportText(e.target.value)}
+                                placeholder='Paste JSON here... e.g. {"title": "...", "author": "..."}'
+                                rows={10}
+                                style={{ fontFamily: 'monospace', fontSize: '0.9rem' }}
+                            />
+                            <button className={styles.actionBtn} onClick={handleImport} type="button">
+                                Apply Metadata
+                            </button>
+                        </div>
+                    )}
+
                     <div className={styles.formGroup}>
                         <label className={styles.label}>Title *</label>
                         <input

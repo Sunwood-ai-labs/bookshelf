@@ -1,9 +1,10 @@
 import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Image as ImageIcon, Upload } from 'lucide-react';
+import { ArrowLeft, Image as ImageIcon, Upload, FileJson } from 'lucide-react';
 import styles from './AddBookPage.module.css';
-import { uploadFile, BookMetadata } from '../services/huggingface';
+import { commitBook, BookMetadata } from '../services/huggingface';
 import { ThemeToggle } from './ThemeToggle';
+import { useBookshelf } from '../hooks/useBookshelf';
 
 export const AddBookPage: React.FC = () => {
     const navigate = useNavigate();
@@ -12,14 +13,48 @@ export const AddBookPage: React.FC = () => {
     const [description, setDescription] = useState('');
     const [tags, setTags] = useState('');
     const [direction, setDirection] = useState<'ltr' | 'rtl'>('rtl');
+    const [xId, setXId] = useState('');
+    const [customFolderName, setCustomFolderName] = useState('');
     const [files, setFiles] = useState<File[]>([]);
     const [previews, setPreviews] = useState<string[]>([]);
     const [uploading, setUploading] = useState(false);
     const [progress, setProgress] = useState('');
-    const [token, setToken] = useState(localStorage.getItem('hf_token') || '');
+    const [token, setToken] = useState(import.meta.env.VITE_HF_TOKEN || localStorage.getItem('hf_token') || '');
 
-    // Default repo - ideally this should be passed or context, but hardcoding for now as per previous logic
-    const repo = "MakiAi/bookshelf-db";
+    // Default repo
+    const [repo, setRepo] = useState("datasets/MakiAi/bookshelf-db");
+
+    // Fetch existing books to get tags
+    const { books } = useBookshelf(repo);
+    const existingTags = Array.from(new Set(books.flatMap(book => book.metadata?.tags || []))).sort();
+
+    const [showImport, setShowImport] = useState(false);
+    const [importText, setImportText] = useState('');
+
+    const handleImport = () => {
+        try {
+            const data = JSON.parse(importText);
+            if (data.title) setTitle(data.title);
+            if (data.author) setAuthor(data.author);
+            if (data.description) setDescription(data.description);
+            if (data.tags) {
+                if (Array.isArray(data.tags)) {
+                    setTags(data.tags.join(', '));
+                } else {
+                    setTags(String(data.tags));
+                }
+            }
+            if (data.direction) setDirection(data.direction);
+            if (data.x_id) setXId(data.x_id);
+            if (data.folderName) setCustomFolderName(data.folderName);
+
+            setShowImport(false);
+            setImportText('');
+            alert('Metadata imported successfully! (Note: Cover image must be selected manually)');
+        } catch (e) {
+            alert('Invalid JSON format');
+        }
+    };
 
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -41,45 +76,29 @@ export const AddBookPage: React.FC = () => {
 
     const handleUpload = async (e: React.MouseEvent) => {
         e.preventDefault();
-        if (!title || files.length === 0 || !token) return;
+        if (!title || files.length === 0 || !token || !repo) return;
 
         setUploading(true);
         localStorage.setItem('hf_token', token);
 
         try {
-            // 1. Create Folder Name (Sanitize Title)
-            const folderName = title.trim().replace(/[^a-zA-Z0-9\u3000-\u303f\u3040-\u309f\u30a0-\u30ff\uff00-\uff9f\u4e00-\u9faf\-_]/g, '_');
-
-            // 2. Prepare Metadata
             const metadata: BookMetadata = {
                 title,
                 author,
                 description,
                 tags: tags.split(',').map(t => t.trim()).filter(Boolean),
                 direction,
-                cover: files[0].name // Default first image as cover
+                cover: files[0].name, // Default first image as cover
+                x_id: xId || undefined
             };
 
-            setProgress('Uploading metadata...');
+            setProgress('Uploading book...');
 
-            // 3. Upload Metadata
-            await uploadFile(
-                repo,
-                JSON.stringify(metadata, null, 2),
-                `${folderName}/metadata.json`,
-                token
-            );
+            // Use custom folder name if provided, otherwise sanitize title
+            const folderName = customFolderName.trim() || title.trim().replace(/[^a-zA-Z0-9\u3000-\u303f\u3040-\u309f\u30a0-\u30ff\uff00-\uff9f\u4e00-\u9faf\-_]/g, '_');
 
-            // 4. Upload Images
-            for (let i = 0; i < files.length; i++) {
-                setProgress(`Uploading image ${i + 1}/${files.length}...`);
-                await uploadFile(
-                    repo,
-                    files[i],
-                    `${folderName}/${files[i].name}`,
-                    token
-                );
-            }
+            // Use batch commit with LFS support
+            await commitBook(repo, token, metadata, files, title, folderName);
 
             alert('Book added successfully! 🎉');
             navigate('/'); // Go back to library
@@ -90,6 +109,48 @@ export const AddBookPage: React.FC = () => {
             setUploading(false);
             setProgress('');
         }
+    };
+
+    const jsonFileInputRef = useRef<HTMLInputElement>(null);
+
+    const handleJsonFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            try {
+                const text = event.target?.result as string;
+                setImportText(text); // Populate textarea for review
+
+                // Auto-apply or just let user review? Let's just populate textarea first so they can click Apply.
+                // Or we can just reuse the parsing logic.
+                // Let's reuse the logic by calling a helper or just setting state and calling handleImport? 
+                // handleImport uses 'importText' state. So if we setImportText, user can click Apply.
+                // But user might expect it to apply immediately.
+
+                // Let's try to parse immediately to be helpful.
+                const data = JSON.parse(text);
+                if (data.title) setTitle(data.title);
+                if (data.author) setAuthor(data.author);
+                if (data.description) setDescription(data.description);
+                if (data.tags) {
+                    if (Array.isArray(data.tags)) {
+                        setTags(data.tags.join(', '));
+                    } else {
+                        setTags(String(data.tags));
+                    }
+                }
+                if (data.direction) setDirection(data.direction);
+                if (data.x_id) setXId(data.x_id);
+                if (data.folderName) setCustomFolderName(data.folderName);
+
+                alert('Metadata loaded from file! Review and click "Apply Metadata" if needed, or it is already applied.');
+            } catch (error) {
+                alert('Failed to parse JSON file');
+            }
+        };
+        reader.readAsText(file);
     };
 
     return (
@@ -106,6 +167,47 @@ export const AddBookPage: React.FC = () => {
                 </header>
 
                 <div className={styles.formSection}>
+                    <button
+                        className={styles.importBtn}
+                        onClick={() => setShowImport(!showImport)}
+                        type="button"
+                    >
+                        <FileJson size={20} />
+                        Import Metadata (JSON)
+                    </button>
+
+                    {showImport && (
+                        <div className={styles.importContainer}>
+                            <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
+                                <button
+                                    className={styles.secondaryBtn}
+                                    onClick={() => jsonFileInputRef.current?.click()}
+                                    type="button"
+                                >
+                                    Load JSON File
+                                </button>
+                                <input
+                                    type="file"
+                                    ref={jsonFileInputRef}
+                                    onChange={handleJsonFileChange}
+                                    accept=".json"
+                                    hidden
+                                />
+                            </div>
+                            <textarea
+                                className={styles.textarea}
+                                value={importText}
+                                onChange={e => setImportText(e.target.value)}
+                                placeholder='Paste JSON here... e.g. {"title": "...", "author": "..."}'
+                                rows={10}
+                                style={{ fontFamily: 'monospace', fontSize: '0.9rem' }}
+                            />
+                            <button className={styles.actionBtn} onClick={handleImport} type="button">
+                                Apply Metadata
+                            </button>
+                        </div>
+                    )}
+
                     <div className={styles.formGroup}>
                         <label className={styles.label}>Title *</label>
                         <input
@@ -115,6 +217,20 @@ export const AddBookPage: React.FC = () => {
                             onChange={e => setTitle(e.target.value)}
                             placeholder="Enter book title..."
                         />
+                    </div>
+
+                    <div className={styles.formGroup}>
+                        <label className={styles.label}>Folder Name (Optional)</label>
+                        <input
+                            className={styles.input}
+                            type="text"
+                            value={customFolderName}
+                            onChange={e => setCustomFolderName(e.target.value)}
+                            placeholder="Auto-generated from title if empty"
+                        />
+                        <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                            Specify a custom folder name for the repository.
+                        </span>
                     </div>
 
                     <div className={styles.row}>
@@ -129,16 +245,27 @@ export const AddBookPage: React.FC = () => {
                             />
                         </div>
                         <div className={styles.formGroup}>
-                            <label className={styles.label}>Reading Direction</label>
-                            <select
-                                className={styles.select}
-                                value={direction}
-                                onChange={e => setDirection(e.target.value as 'ltr' | 'rtl')}
-                            >
-                                <option value="rtl">Right to Left (Manga)</option>
-                                <option value="ltr">Left to Right</option>
-                            </select>
+                            <label className={styles.label}>X (Twitter) ID</label>
+                            <input
+                                className={styles.input}
+                                type="text"
+                                value={xId}
+                                onChange={e => setXId(e.target.value)}
+                                placeholder="@username"
+                            />
                         </div>
+                    </div>
+
+                    <div className={styles.formGroup}>
+                        <label className={styles.label}>Reading Direction</label>
+                        <select
+                            className={styles.select}
+                            value={direction}
+                            onChange={e => setDirection(e.target.value as 'ltr' | 'rtl')}
+                        >
+                            <option value="rtl">Right to Left (Manga)</option>
+                            <option value="ltr">Left to Right</option>
+                        </select>
                     </div>
 
                     <div className={styles.formGroup}>
@@ -161,6 +288,42 @@ export const AddBookPage: React.FC = () => {
                             onChange={e => setTags(e.target.value)}
                             placeholder="Action, Fantasy, 2025..."
                         />
+                        {existingTags.length > 0 && (
+                            <div className={styles.tagsContainer}>
+                                <span className={styles.tagsLabel}>Existing Tags:</span>
+                                <div className={styles.tagsList}>
+                                    {existingTags.map(tag => (
+                                        <button
+                                            key={tag}
+                                            type="button"
+                                            className={styles.tagChip}
+                                            onClick={() => {
+                                                const currentTags = tags.split(',').map(t => t.trim()).filter(Boolean);
+                                                if (!currentTags.includes(tag)) {
+                                                    setTags([...currentTags, tag].join(', '));
+                                                }
+                                            }}
+                                        >
+                                            {tag}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    <div className={styles.formGroup}>
+                        <label className={styles.label}>Repository *</label>
+                        <input
+                            className={styles.input}
+                            type="text"
+                            value={repo}
+                            onChange={e => setRepo(e.target.value)}
+                            placeholder="datasets/username/repo-name"
+                        />
+                        <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                            Prefix with 'datasets/' for dataset repositories.
+                        </span>
                     </div>
 
                     {!token && (
@@ -214,7 +377,7 @@ export const AddBookPage: React.FC = () => {
                     <button
                         className={styles.submitBtn}
                         onClick={handleUpload}
-                        disabled={uploading || !title || files.length === 0 || !token}
+                        disabled={uploading || !title || files.length === 0 || !token || !repo}
                     >
                         {uploading ? (
                             <span>{progress || 'Uploading...'}</span>

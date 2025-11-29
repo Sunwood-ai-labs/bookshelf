@@ -69,7 +69,7 @@ export const Bookshelf: React.FC = () => {
                         >
                             All
                         </span>
-                        {['Action', 'Fantasy', 'Slice of Life', 'Romance', 'Sci-Fi'].map(tag => (
+                        {Array.from(new Set(books.flatMap(book => book.metadata?.tags || []))).sort().map(tag => (
                             <span
                                 key={tag}
                                 className={`${styles.chip} ${searchQuery === tag ? styles.active : ''}`}

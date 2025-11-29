@@ -25,6 +25,13 @@ export const Book: React.FC<BookProps> = ({ book, onClick }) => {
             <div className={styles.info}>
                 <div className={styles.title}>{book.title}</div>
                 <div className={styles.subtitle}>{book.pages.length} Pages</div>
+                {book.metadata?.tags && book.metadata.tags.length > 0 && (
+                    <div className={styles.tags}>
+                        {book.metadata.tags.map(tag => (
+                            <span key={tag} className={styles.tag}>{tag}</span>
+                        ))}
+                    </div>
+                )}
             </div>
         </div>
     );

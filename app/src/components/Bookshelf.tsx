@@ -29,9 +29,12 @@ export const Bookshelf: React.FC = () => {
         setSelectedBook(null);
     }, []);
 
-    const filteredBooks = books.filter(book =>
-        book.title.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    const filteredBooks = books.filter(book => {
+        const query = searchQuery.toLowerCase();
+        const titleMatch = book.title.toLowerCase().includes(query);
+        const tagsMatch = book.metadata?.tags?.some(tag => tag.toLowerCase().includes(query));
+        return titleMatch || tagsMatch;
+    });
 
     return (
         <div className={styles.layout}>
@@ -60,12 +63,21 @@ export const Bookshelf: React.FC = () => {
                     </div>
 
                     <div className={styles.filters}>
-                        <span className={`${styles.chip} ${styles.active}`}>All</span>
-                        <span className={styles.chip}>Action</span>
-                        <span className={styles.chip}>Fantasy</span>
-                        <span className={styles.chip}>Slice of Life</span>
-                        <span className={styles.chip}>Romance</span>
-                        <span className={styles.chip}>Sci-Fi</span>
+                        <span
+                            className={`${styles.chip} ${searchQuery === '' ? styles.active : ''}`}
+                            onClick={() => setSearchQuery('')}
+                        >
+                            All
+                        </span>
+                        {Array.from(new Set(books.flatMap(book => book.metadata?.tags || []))).sort().map(tag => (
+                            <span
+                                key={tag}
+                                className={`${styles.chip} ${searchQuery === tag ? styles.active : ''}`}
+                                onClick={() => setSearchQuery(tag)}
+                            >
+                                {tag}
+                            </span>
+                        ))}
                     </div>
                 </header>
 

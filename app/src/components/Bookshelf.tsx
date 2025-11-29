@@ -63,12 +63,21 @@ export const Bookshelf: React.FC = () => {
                     </div>
 
                     <div className={styles.filters}>
-                        <span className={`${styles.chip} ${styles.active}`}>All</span>
-                        <span className={styles.chip}>Action</span>
-                        <span className={styles.chip}>Fantasy</span>
-                        <span className={styles.chip}>Slice of Life</span>
-                        <span className={styles.chip}>Romance</span>
-                        <span className={styles.chip}>Sci-Fi</span>
+                        <span
+                            className={`${styles.chip} ${searchQuery === '' ? styles.active : ''}`}
+                            onClick={() => setSearchQuery('')}
+                        >
+                            All
+                        </span>
+                        {['Action', 'Fantasy', 'Slice of Life', 'Romance', 'Sci-Fi'].map(tag => (
+                            <span
+                                key={tag}
+                                className={`${styles.chip} ${searchQuery === tag ? styles.active : ''}`}
+                                onClick={() => setSearchQuery(tag)}
+                            >
+                                {tag}
+                            </span>
+                        ))}
                     </div>
                 </header>
 

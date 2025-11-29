@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Image as ImageIcon, Upload } from 'lucide-react';
 import styles from './AddBookPage.module.css';
 import { uploadFile, BookMetadata } from '../services/huggingface';
+import { ThemeToggle } from './ThemeToggle';
 
 export const AddBookPage: React.FC = () => {
     const navigate = useNavigate();
@@ -99,6 +100,9 @@ export const AddBookPage: React.FC = () => {
                         <ArrowLeft size={24} />
                     </button>
                     <h1 className={styles.title}>Add New Book</h1>
+                    <div style={{ marginLeft: 'auto' }}>
+                        <ThemeToggle />
+                    </div>
                 </header>
 
                 <div className={styles.formSection}>

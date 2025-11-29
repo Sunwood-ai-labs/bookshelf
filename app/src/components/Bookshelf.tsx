@@ -5,16 +5,10 @@ import { useBookshelf } from '../hooks/useBookshelf';
 import { Book } from './Book';
 import { BookReader } from './BookReader';
 import { BookEntry } from '../services/huggingface';
+import { ThemeToggle } from './ThemeToggle';
 import styles from './Bookshelf.module.css';
 
 export const Bookshelf: React.FC = () => {
-    // We modify useBookshelf to accept a dependency or expose a refresh method, 
-    // but for now let's just force re-render by toggling a key or similar if we modify the hook.
-    // Actually, let's modify the hook slightly or just use the key on the component?
-    // Better: modify useBookshelf to take a version number.
-
-    // Let's assume useBookshelf re-fetches when repo changes. 
-    // We can just pass a refresh signal.
     // Default repo: datasets/MakiAi/bookshelf-db
     const [repo] = useState<string>('datasets/MakiAi/bookshelf-db');
     const { books, loading, error } = useBookshelf(repo);
@@ -60,6 +54,10 @@ export const Bookshelf: React.FC = () => {
                             placeholder="Search..."
                             className={styles.repoInput}
                         />
+                    </div>
+
+                    <div style={{ marginLeft: 'auto', marginRight: '20px' }}>
+                        <ThemeToggle />
                     </div>
 
                     <div className={styles.filters}>

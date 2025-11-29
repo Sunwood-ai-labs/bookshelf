@@ -49,7 +49,7 @@ export const Book: React.FC<BookProps> = ({ book, onClick }) => {
                             onClick={handleXClick}
                             title={`View ${book.metadata.x_id} on X`}
                         >
-                            <Twitter size={16} />
+                            <Twitter size={18} />
                         </a>
                     )}
                 </div>

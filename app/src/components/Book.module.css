@@ -70,7 +70,7 @@
 }
 
 .landscape .coverWrapper {
-  aspect-ratio: 16 / 9;
+  aspect-ratio: 7 / 5;
 }
 
 .xLink {
@@ -78,13 +78,15 @@
   align-items: center;
   justify-content: center;
   color: var(--text-secondary);
-  transition: color 0.2s;
+  transition: all 0.2s;
   margin-left: auto;
   padding: 4px;
+  border-radius: 50%;
 }
 
 .xLink:hover {
-  color: var(--text-primary);
+  color: white;
+  background-color: var(--accent);
 }
 
 .headerRow {

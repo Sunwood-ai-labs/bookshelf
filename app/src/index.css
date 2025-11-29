@@ -5,15 +5,20 @@
   line-height: 1.5;
   font-weight: 400;
 
-  /* Manga Stack Theme */
-  --bg-primary: #ffffff;
-  --bg-secondary: #f2f2f7;
-  --text-primary: #000000;
-  --text-secondary: #8e8e93;
-  --accent: #000000;
+  /* Common Variables */
+  --accent: #ff69b4;
+  /* Gal Pink 💖 */
   --border-radius: 16px;
+
+  /* Light Theme (Default) */
+  --bg-primary: #ffffff;
+  --bg-secondary: #f4f4f5;
+  --text-primary: #18181b;
+  --text-secondary: #71717a;
+  --border-color: #e4e4e7;
   --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.05);
   --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.15);
 
   color-scheme: light;
   color: var(--text-primary);
@@ -22,6 +27,21 @@
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Dark Theme */
+[data-theme='dark'] {
+  --bg-primary: #09090b;
+  --bg-secondary: #18181b;
+  --text-primary: #fafafa;
+  --text-secondary: #a1a1aa;
+  --border-color: #27272a;
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.6);
+
+
   -moz-osx-font-smoothing: grayscale;
 }
 

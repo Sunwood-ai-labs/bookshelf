@@ -1,0 +1,11 @@
+{
+  "generation_date": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+  "prompt": "A micro book terrarium scene featuring a tiny clay sculpture of "Book - v0\.3\.0 -" surrounded by moss, pebbles, and miniature natural props. Glass dome with condensation details and wooden base engraved with their name. Warm aesthetic nature lighting, photorealistic textures, ",
+  "model": "imagen-4-ultra",
+  "num_images": 1,
+  "aspect_ratio": "16:9",
+  "seed": "",
+  "workflow_run": "3",
+  "commit_sha": "4a83170ca832ade3fa1eacea8ddb584a5a361a68",
+  "tag": "v0.3.0"
+}

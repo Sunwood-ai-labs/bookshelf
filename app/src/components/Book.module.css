@@ -2,6 +2,7 @@
   width: 100%;
   cursor: pointer;
   transition: transform 0.2s ease;
+  grid-column: span 2;
 }
 
 .bookContainer:hover {
@@ -65,8 +66,16 @@
   white-space: nowrap;
 }
 
+.square {
+  grid-column: span 3;
+}
+
+.square .coverWrapper {
+  aspect-ratio: 1 / 1;
+}
+
 .landscape {
-  grid-column: span 2;
+  grid-column: span 4;
 }
 
 .landscape .coverWrapper {

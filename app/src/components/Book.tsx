@@ -9,12 +9,18 @@ interface BookProps {
 
 export const Book: React.FC<BookProps> = ({ book }) => {
     const navigate = useNavigate();
-    const [isLandscape, setIsLandscape] = useState(false);
+    const [aspectRatio, setAspectRatio] = useState<'portrait' | 'square' | 'landscape'>('portrait');
 
     const handleImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
         const img = e.currentTarget;
-        if (img.naturalWidth > img.naturalHeight) {
-            setIsLandscape(true);
+        const ratio = img.naturalWidth / img.naturalHeight;
+
+        if (ratio > 1.2) {
+            setAspectRatio('landscape');
+        } else if (ratio >= 0.9) {
+            setAspectRatio('square');
+        } else {
+            setAspectRatio('portrait');
         }
     };
 
@@ -28,7 +34,9 @@ export const Book: React.FC<BookProps> = ({ book }) => {
 
     return (
         <div
-            className={`${styles.bookContainer} ${isLandscape ? styles.landscape : ''}`}
+            className={`${styles.bookContainer} ${aspectRatio === 'landscape' ? styles.landscape :
+                    aspectRatio === 'square' ? styles.square : ''
+                }`}
             title={book.title}
             onClick={handleClick}
         >

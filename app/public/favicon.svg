@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <linearGradient id="coverGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FF0080" />
+      <stop offset="100%" stop-color="#7928CA" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Back Cover / Shadow -->
+  <path d="M4 16 C 4 16, 18 20, 32 14 V 52 C 32 52, 18 58, 4 52 Z" fill="url(#coverGrad)" />
+  <path d="M60 16 C 60 16, 46 20, 32 14 V 52 C 32 52, 46 58, 60 52 Z" fill="url(#coverGrad)" />
+  
+  <!-- Pages (White) -->
+  <path d="M6 19 C 6 19, 18 22, 30 17 V 50 C 30 50, 18 55, 6 50 Z" fill="#FFFFFF" />
+  <path d="M58 19 C 58 19, 46 22, 34 17 V 50 C 34 50, 46 55, 58 50 Z" fill="#FFFFFF" />
+  
+  <!-- Text Lines (Decoration) -->
+  <path d="M10 24 C 10 24, 18 26, 26 22" stroke="#E0E0E0" stroke-width="2" fill="none" />
+  <path d="M10 30 C 10 30, 18 32, 26 28" stroke="#E0E0E0" stroke-width="2" fill="none" />
+  <path d="M10 36 C 10 36, 18 38, 26 34" stroke="#E0E0E0" stroke-width="2" fill="none" />
+  
+  <path d="M38 22 C 38 22, 46 25, 54 24" stroke="#E0E0E0" stroke-width="2" fill="none" />
+  <path d="M38 28 C 38 28, 46 31, 54 30" stroke="#E0E0E0" stroke-width="2" fill="none" />
+  <path d="M38 34 C 38 34, 46 37, 54 36" stroke="#E0E0E0" stroke-width="2" fill="none" />
+
+  <!-- Center Spine -->
+  <path d="M32 14 V 52" stroke="#5a1e96" stroke-width="1" opacity="0.3" />
+</svg>

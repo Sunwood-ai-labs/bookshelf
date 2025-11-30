@@ -20,52 +20,46 @@ export const Bookshelf: React.FC = () => {
 
     return (
         <div className={styles.layout}>
-            {/* Sidebar */}
-            <aside className={styles.sidebar}>
+            {/* Navbar */}
+            <nav className={styles.navbar}>
                 <div className={styles.logo}>
-                    MANGA<br />STACK
+                    BOOKSHELF
                 </div>
 
-                {/* Navigation removed as per request - minimalist style */}
-            </aside>
+                <div className={styles.searchContainer}>
+                    <input
+                        type="text"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        placeholder="Search..."
+                        className={styles.repoInput}
+                    />
+                </div>
+
+                <div className={styles.actions}>
+                    <ThemeToggle />
+                </div>
+            </nav>
 
             {/* Main Content */}
             <main className={styles.mainContent}>
-                <header className={styles.header}>
-                    <h1 className={styles.pageTitle}>Library</h1>
-
-                    <div className={styles.inputContainer}>
-                        <input
-                            type="text"
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            placeholder="Search..."
-                            className={styles.repoInput}
-                        />
-                    </div>
-
-                    <div style={{ marginLeft: 'auto', marginRight: '20px' }}>
-                        <ThemeToggle />
-                    </div>
-
-                    <div className={styles.filters}>
+                <div className={styles.filters}>
+                    <span
+                        className={`${styles.chip} ${searchQuery === '' ? styles.active : ''}`}
+                        onClick={() => setSearchQuery('')}
+                    >
+                        All
+                    </span>
+                    {Array.from(new Set(books.flatMap(book => book.metadata?.tags || []))).sort().map(tag => (
                         <span
-                            className={`${styles.chip} ${searchQuery === '' ? styles.active : ''}`}
-                            onClick={() => setSearchQuery('')}
+                            key={tag}
+                            className={`${styles.chip} ${searchQuery === tag ? styles.active : ''}`}
+                            onClick={() => setSearchQuery(tag)}
                         >
-                            All
+                            {tag}
                         </span>
-                        {Array.from(new Set(books.flatMap(book => book.metadata?.tags || []))).sort().map(tag => (
-                            <span
-                                key={tag}
-                                className={`${styles.chip} ${searchQuery === tag ? styles.active : ''}`}
-                                onClick={() => setSearchQuery(tag)}
-                            >
-                                {tag}
-                            </span>
-                        ))}
-                    </div>
-                </header>
+                    ))}
+                </div>
 
                 {loading && (
                     <div className={styles.loadingContainer}>

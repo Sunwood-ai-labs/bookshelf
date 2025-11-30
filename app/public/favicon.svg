@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <linearGradient id="neon" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FF00FF" />
+      <stop offset="50%" stop-color="#9D00FF" />
+      <stop offset="100%" stop-color="#00FFFF" />
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="2.5" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Book Icon -->
+  <g filter="url(#glow)">
+    <!-- Left Page -->
+    <path d="M32 54 C 32 54, 8 50, 8 16 C 8 16, 22 20, 32 12" 
+          fill="none" stroke="url(#neon)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+    <!-- Right Page -->
+    <path d="M32 54 C 32 54, 56 50, 56 16 C 56 16, 42 20, 32 12" 
+          fill="none" stroke="url(#neon)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+    <!-- Center Spine -->
+    <path d="M32 54 V 12" stroke="url(#neon)" stroke-width="4" stroke-linecap="round"/>
+  </g>
+</svg>

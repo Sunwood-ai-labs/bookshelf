@@ -6,9 +6,10 @@ import { BookEntry } from '../services/huggingface';
 interface BookReaderProps {
     book: BookEntry;
     onClose: () => void;
+    initialPage?: number;
 }
 
-export const BookReader: React.FC<BookReaderProps> = ({ book, onClose }) => {
+export const BookReader: React.FC<BookReaderProps> = ({ book, onClose, initialPage = 0 }) => {
     const [showControls, setShowControls] = React.useState(true);
     const controlsTimeoutRef = React.useRef<number | null>(null);
 
@@ -29,6 +30,20 @@ export const BookReader: React.FC<BookReaderProps> = ({ book, onClose }) => {
             if (controlsTimeoutRef.current) window.clearTimeout(controlsTimeoutRef.current);
         };
     }, []);
+
+    // Scroll to initial page
+    useEffect(() => {
+        if (initialPage > 0) {
+            const container = document.querySelector(`.${styles.readerContainer}`);
+            if (container) {
+                const isRtl = book.metadata?.direction === 'rtl';
+                const scrollPosition = isRtl
+                    ? container.scrollWidth - (initialPage * window.innerWidth) - window.innerWidth
+                    : initialPage * window.innerWidth;
+                container.scrollTo({ left: scrollPosition, behavior: 'auto' });
+            }
+        }
+    }, [initialPage, book.metadata?.direction]);
 
     // Close on Escape key and Navigate with Arrows
     useEffect(() => {

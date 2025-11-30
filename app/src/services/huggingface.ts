@@ -17,6 +17,7 @@ export interface BookMetadata {
 
 export interface BookEntry {
     title: string;
+    folderName: string;
     cover: HFFile;
     pages: HFFile[];
     metadata?: BookMetadata;
@@ -107,6 +108,7 @@ export const getImagesFromRepo = async (repo: string): Promise<BookEntry[]> => {
 
                 books.push({
                     title: metadata?.title || title,
+                    folderName: title,
                     cover: cover,
                     pages: pages,
                     metadata: metadata

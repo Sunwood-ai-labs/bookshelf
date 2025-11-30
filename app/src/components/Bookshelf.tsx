@@ -1,27 +1,15 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Plus } from 'lucide-react';
 import { useBookshelf } from '../hooks/useBookshelf';
 import { Book } from './Book';
-import { BookReader } from './BookReader';
-import { BookEntry } from '../services/huggingface';
 import { ThemeToggle } from './ThemeToggle';
 import styles from './Bookshelf.module.css';
+import { DEFAULT_REPO } from '../config/constants';
 
 export const Bookshelf: React.FC = () => {
-    // Default repo: datasets/MakiAi/bookshelf-db
-    const [repo] = useState<string>('datasets/MakiAi/bookshelf-db');
-    const { books, loading, error } = useBookshelf(repo);
-    const [selectedBook, setSelectedBook] = useState<BookEntry | null>(null);
+    const { books, loading, error } = useBookshelf(DEFAULT_REPO);
     const [searchQuery, setSearchQuery] = useState<string>('');
-
-    const handleBookClick = useCallback((book: BookEntry) => {
-        setSelectedBook(book);
-    }, []);
-
-    const handleCloseReader = useCallback(() => {
-        setSelectedBook(null);
-    }, []);
 
     const filteredBooks = books.filter(book => {
         const query = searchQuery.toLowerCase();
@@ -79,7 +67,22 @@ export const Bookshelf: React.FC = () => {
                     </div>
                 </header>
 
-                {loading && <div className={styles.loading}>Loading...</div>}
+                {loading && (
+                    <div className={styles.loadingContainer}>
+                        <div className={styles.bookLoader}>
+                            <div className={styles.bookPage}></div>
+                            <div className={styles.bookPage}></div>
+                            <div className={styles.bookPage}></div>
+                            <div className={styles.bookSpine}></div>
+                        </div>
+                        <div className={styles.loadingDots}>
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </div>
+                        <p className={styles.loadingText}>Loading your library...</p>
+                    </div>
+                )}
 
                 {error && <div className={styles.error}>{error}</div>}
 
@@ -92,7 +95,7 @@ export const Bookshelf: React.FC = () => {
                         </Link>
 
                         {filteredBooks.map((book) => (
-                            <Book key={book.title} book={book} onClick={handleBookClick} />
+                            <Book key={book.title} book={book} />
                         ))}
                     </div>
                 )}
@@ -109,10 +112,6 @@ export const Bookshelf: React.FC = () => {
                     </p>
                 )}
             </main>
-
-            {selectedBook && (
-                <BookReader book={selectedBook} onClose={handleCloseReader} />
-            )}
         </div>
     );
 };

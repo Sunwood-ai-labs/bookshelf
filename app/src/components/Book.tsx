@@ -24,7 +24,7 @@ export const Book: React.FC<BookProps> = ({ book }) => {
     };
 
     const handleClick = () => {
-        navigate(`/manga/${encodeURIComponent(book.title)}`);
+        navigate(`/manga/${encodeURIComponent(book.folderName)}`);
     };
 
     return (

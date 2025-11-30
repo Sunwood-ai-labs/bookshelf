@@ -15,7 +15,7 @@ export const MangaDetailPage: React.FC = () => {
     const [selectedBook, setSelectedBook] = useState<BookEntry | null>(null);
     const [initialPage, setInitialPage] = useState<number>(0);
 
-    const book = books.find(b => encodeURIComponent(b.title) === title);
+    const book = books.find(b => encodeURIComponent(b.folderName) === title);
 
     const handlePageClick = (pageIndex: number) => {
         if (book) {

@@ -67,7 +67,22 @@ export const Bookshelf: React.FC = () => {
                     </div>
                 </header>
 
-                {loading && <div className={styles.loading}>Loading...</div>}
+                {loading && (
+                    <div className={styles.loadingContainer}>
+                        <div className={styles.bookLoader}>
+                            <div className={styles.bookPage}></div>
+                            <div className={styles.bookPage}></div>
+                            <div className={styles.bookPage}></div>
+                            <div className={styles.bookSpine}></div>
+                        </div>
+                        <div className={styles.loadingDots}>
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </div>
+                        <p className={styles.loadingText}>Loading your library...</p>
+                    </div>
+                )}
 
                 {error && <div className={styles.error}>{error}</div>}
 

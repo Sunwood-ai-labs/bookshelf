@@ -83,11 +83,20 @@
     color: var(--accent-color);
     text-decoration: none;
     font-size: 0.95rem;
-    transition: opacity 0.2s;
+    transition: all 0.2s;
 }
 
 .xLink:hover {
     opacity: 0.8;
+    transform: translateX(2px);
+}
+
+.xIcon {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--border-color);
 }
 
 .description {

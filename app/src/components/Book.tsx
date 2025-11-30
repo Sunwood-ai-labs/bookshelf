@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from './Book.module.css';
 import { BookEntry } from '../services/huggingface';
-import { Twitter } from 'lucide-react';
 
 interface BookProps {
     book: BookEntry;
@@ -54,7 +53,11 @@ export const Book: React.FC<BookProps> = ({ book }) => {
                             onClick={handleXClick}
                             title={`View ${book.metadata.x_id} on X`}
                         >
-                            <Twitter size={18} />
+                            <img
+                                src={`https://unavatar.io/twitter/${book.metadata.x_id.replace('@', '')}`}
+                                alt={book.metadata.x_id}
+                                className={styles.xIcon}
+                            />
                         </a>
                     )}
                 </div>

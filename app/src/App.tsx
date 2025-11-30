@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Bookshelf } from './components/Bookshelf';
 import { AddBookPage } from './components/AddBookPage';
+import { MangaDetailPage } from './components/MangaDetailPage';
 import './App.css';
 
 import { ToastProvider } from './context/ToastContext';
@@ -28,6 +29,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Bookshelf />} />
           <Route path="/add" element={<AddBookPage />} />
+          <Route path="/manga/:title" element={<MangaDetailPage />} />
         </Routes>
       </Router>
     </ToastProvider>

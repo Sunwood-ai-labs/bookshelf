@@ -1,17 +1,16 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, BookOpen } from 'lucide-react';
+import { ArrowLeft, BookOpen, Loader2, Home } from 'lucide-react';
 import styles from './MangaDetailPage.module.css';
 import { useBookshelf } from '../hooks/useBookshelf';
 import { BookReader } from './BookReader';
 import { BookEntry } from '../services/huggingface';
-
-const REPO = 'datasets/MakiAi/bookshelf-db';
+import { DEFAULT_REPO } from '../config/constants';
 
 export const MangaDetailPage: React.FC = () => {
     const { title } = useParams<{ title: string }>();
     const navigate = useNavigate();
-    const { books, loading, error } = useBookshelf(REPO);
+    const { books, loading, error } = useBookshelf(DEFAULT_REPO);
     const [selectedBook, setSelectedBook] = useState<BookEntry | null>(null);
     const [initialPage, setInitialPage] = useState<number>(0);
 
@@ -34,21 +33,46 @@ export const MangaDetailPage: React.FC = () => {
     if (loading) {
         return (
             <div className={styles.container}>
-                <div className={styles.loading}>Loading...</div>
+                <div className={styles.loadingContainer}>
+                    <Loader2 className={styles.spinner} size={48} />
+                    <p className={styles.loadingText}>Loading manga...</p>
+                </div>
             </div>
         );
     }
 
-    if (error || !book) {
+    if (error) {
         return (
             <div className={styles.container}>
-                <div className={styles.error}>
-                    {error || 'Manga not found'}
+                <div className={styles.errorContainer}>
+                    <div className={styles.errorContent}>
+                        <h2 className={styles.errorTitle}>Oops! Something went wrong</h2>
+                        <p className={styles.errorMessage}>{error}</p>
+                        <button onClick={() => navigate('/')} className={styles.homeButton}>
+                            <Home size={20} />
+                            Back to Library
+                        </button>
+                    </div>
                 </div>
-                <button onClick={() => navigate('/')} className={styles.backButton}>
-                    <ArrowLeft size={20} />
-                    Back to Library
-                </button>
+            </div>
+        );
+    }
+
+    if (!book) {
+        return (
+            <div className={styles.container}>
+                <div className={styles.errorContainer}>
+                    <div className={styles.errorContent}>
+                        <h2 className={styles.errorTitle}>Manga not found</h2>
+                        <p className={styles.errorMessage}>
+                            The manga you're looking for doesn't exist or has been removed.
+                        </p>
+                        <button onClick={() => navigate('/')} className={styles.homeButton}>
+                            <Home size={20} />
+                            Back to Library
+                        </button>
+                    </div>
+                </div>
             </div>
         );
     }

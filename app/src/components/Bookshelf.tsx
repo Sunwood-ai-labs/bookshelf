@@ -5,11 +5,10 @@ import { useBookshelf } from '../hooks/useBookshelf';
 import { Book } from './Book';
 import { ThemeToggle } from './ThemeToggle';
 import styles from './Bookshelf.module.css';
+import { DEFAULT_REPO } from '../config/constants';
 
 export const Bookshelf: React.FC = () => {
-    // Default repo: datasets/MakiAi/bookshelf-db
-    const [repo] = useState<string>('datasets/MakiAi/bookshelf-db');
-    const { books, loading, error } = useBookshelf(repo);
+    const { books, loading, error } = useBookshelf(DEFAULT_REPO);
     const [searchQuery, setSearchQuery] = useState<string>('');
 
     const filteredBooks = books.filter(book => {

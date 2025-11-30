@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, BookOpen, Loader2, Home } from 'lucide-react';
+import { ArrowLeft, BookOpen, Home } from 'lucide-react';
 import styles from './MangaDetailPage.module.css';
 import { useBookshelf } from '../hooks/useBookshelf';
 import { BookReader } from './BookReader';
@@ -34,7 +34,17 @@ export const MangaDetailPage: React.FC = () => {
         return (
             <div className={styles.container}>
                 <div className={styles.loadingContainer}>
-                    <Loader2 className={styles.spinner} size={48} />
+                    <div className={styles.bookLoader}>
+                        <div className={styles.bookPage}></div>
+                        <div className={styles.bookPage}></div>
+                        <div className={styles.bookPage}></div>
+                        <div className={styles.bookSpine}></div>
+                    </div>
+                    <div className={styles.loadingDots}>
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
                     <p className={styles.loadingText}>Loading manga...</p>
                 </div>
             </div>

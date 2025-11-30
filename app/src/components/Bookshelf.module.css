@@ -17,6 +17,8 @@
     align-items: center;
     justify-content: space-between;
     padding: 15px 30px;
+    padding-right: 160px;
+    /* Avoid GitHub Ribbon overlap */
     background-color: var(--bg-primary);
     border-bottom: 1px solid var(--border-color);
     position: sticky;
@@ -239,10 +241,10 @@
 .filters {
     display: flex;
     gap: 10px;
-    overflow-x: auto;
+    flex-wrap: wrap;
+    /* Allow tags to wrap */
     padding-bottom: 10px;
     margin-bottom: 20px;
-    scrollbar-width: none;
 }
 
 .filters::-webkit-scrollbar {

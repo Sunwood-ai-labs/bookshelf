@@ -1,14 +1,15 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import styles from './Book.module.css';
 import { BookEntry } from '../services/huggingface';
 import { Twitter } from 'lucide-react';
 
 interface BookProps {
     book: BookEntry;
-    onClick: (book: BookEntry) => void;
 }
 
-export const Book: React.FC<BookProps> = ({ book, onClick }) => {
+export const Book: React.FC<BookProps> = ({ book }) => {
+    const navigate = useNavigate();
     const [isLandscape, setIsLandscape] = useState(false);
 
     const handleImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
@@ -22,11 +23,15 @@ export const Book: React.FC<BookProps> = ({ book, onClick }) => {
         e.stopPropagation();
     };
 
+    const handleClick = () => {
+        navigate(`/manga/${encodeURIComponent(book.title)}`);
+    };
+
     return (
         <div
             className={`${styles.bookContainer} ${isLandscape ? styles.landscape : ''}`}
             title={book.title}
-            onClick={() => onClick(book)}
+            onClick={handleClick}
         >
             <div className={styles.coverWrapper}>
                 <img

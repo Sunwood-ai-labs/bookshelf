@@ -12,12 +12,19 @@
     background-color: var(--bg-secondary);
 }
 
-.sidebar {
-    background-color: var(--bg-primary);
-    padding: 20px;
+.navbar {
     display: flex;
-    flex-direction: column;
-    gap: 30px;
+    align-items: center;
+    justify-content: space-between;
+    padding: 15px 30px;
+    padding-right: 160px;
+    /* Avoid GitHub Ribbon overlap */
+    background-color: var(--bg-primary);
+    border-bottom: 1px solid var(--border-color);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    gap: 20px;
 }
 
 .logo {
@@ -26,32 +33,14 @@
     letter-spacing: 1px;
     color: var(--text-primary);
     text-transform: uppercase;
-    margin-bottom: 10px;
-    line-height: 1.2;
+    line-height: 1;
+    white-space: nowrap;
 }
 
-.nav {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-}
-
-.navItem {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    color: var(--text-secondary);
-    font-size: 1rem;
-    cursor: pointer;
-    padding: 10px 15px;
-    border-radius: var(--border-radius);
-    transition: background-color 0.2s, color 0.2s;
-}
-
-.navItem:hover,
-.navItem.active {
-    background-color: rgba(255, 255, 255, 0.1);
-    color: var(--text-primary);
+.searchContainer {
+    flex: 1;
+    max-width: 600px;
+    margin: 0 20px;
 }
 
 .mainContent {
@@ -60,42 +49,22 @@
     overflow-y: auto;
 }
 
-.header {
-    margin-bottom: 30px;
-    padding-top: 20px;
-}
-
-.pageTitle {
-    font-size: 2.5rem;
-    font-weight: 700;
-    margin-bottom: 20px;
-    letter-spacing: -0.02em;
-    color: var(--text-primary);
-}
-
-.inputContainer {
-    margin-bottom: 30px;
-    position: relative;
-    width: 100%;
-}
-
 .repoInput {
     width: 100%;
-    max-width: 400px;
-    padding: 12px 20px;
+    padding: 10px 20px;
     border-radius: 999px;
-    border: 2px solid transparent;
-    background-color: var(--bg-primary);
-    font-size: 1rem;
+    border: 1px solid var(--border-color);
+    background-color: var(--bg-secondary);
+    font-size: 0.95rem;
     color: var(--text-primary);
     outline: none;
     transition: all 0.2s;
-    box-shadow: var(--shadow-sm);
 }
 
 .repoInput:focus {
     border-color: var(--accent);
-    box-shadow: 0 0 0 4px rgba(255, 105, 180, 0.1);
+    background-color: var(--bg-primary);
+    box-shadow: 0 0 0 2px rgba(255, 105, 180, 0.1);
 }
 
 .grid {
@@ -188,9 +157,12 @@
 }
 
 @keyframes flipPage {
-    0%, 100% {
+
+    0%,
+    100% {
         transform: rotateY(0deg);
     }
+
     50% {
         transform: rotateY(-180deg);
     }
@@ -223,10 +195,14 @@
 }
 
 @keyframes bounce {
-    0%, 80%, 100% {
+
+    0%,
+    80%,
+    100% {
         transform: scale(0.8);
         opacity: 0.5;
     }
+
     40% {
         transform: scale(1.2);
         opacity: 1;
@@ -241,9 +217,12 @@
 }
 
 @keyframes pulse {
-    0%, 100% {
+
+    0%,
+    100% {
         opacity: 0.6;
     }
+
     50% {
         opacity: 1;
     }
@@ -262,10 +241,10 @@
 .filters {
     display: flex;
     gap: 10px;
-    overflow-x: auto;
+    flex-wrap: wrap;
+    /* Allow tags to wrap */
     padding-bottom: 10px;
     margin-bottom: 20px;
-    scrollbar-width: none;
 }
 
 .filters::-webkit-scrollbar {
@@ -302,32 +281,8 @@
         padding: 40px;
     }
 
-    .header {
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        justify-content: space-between;
-        gap: 20px;
-    }
-
-    .pageTitle {
-        margin-bottom: 0;
-        font-size: 3rem;
-    }
-
-    .inputContainer {
-        margin-bottom: 0;
-        flex: 1;
-        max-width: 500px;
-        order: 2;
-    }
-
     .filters {
-        width: 100%;
-        order: 3;
-        margin-top: 20px;
-        overflow-x: visible;
-        flex-wrap: wrap;
+        justify-content: center;
     }
 
     .grid {

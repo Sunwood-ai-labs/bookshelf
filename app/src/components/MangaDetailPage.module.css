@@ -101,6 +101,28 @@
     border: 2px solid var(--border-color);
 }
 
+.generationLink {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 0.95rem;
+    transition: all 0.2s;
+    background: var(--bg-primary);
+    padding: 6px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    width: fit-content;
+}
+
+.generationLink:hover {
+    border-color: var(--accent-color);
+    color: var(--accent-color);
+    transform: translateY(-2px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
 .description {
     color: var(--text-secondary);
     line-height: 1.6;
@@ -267,27 +289,36 @@
 }
 
 @keyframes flipPage1 {
-    0%, 100% {
+
+    0%,
+    100% {
         transform: rotateY(0deg);
     }
+
     50% {
         transform: rotateY(-180deg);
     }
 }
 
 @keyframes flipPage2 {
-    0%, 100% {
+
+    0%,
+    100% {
         transform: rotateY(0deg);
     }
+
     50% {
         transform: rotateY(-180deg);
     }
 }
 
 @keyframes flipPage3 {
-    0%, 100% {
+
+    0%,
+    100% {
         transform: rotateY(0deg);
     }
+
     50% {
         transform: rotateY(-180deg);
     }
@@ -321,10 +352,14 @@
 }
 
 @keyframes bounce {
-    0%, 80%, 100% {
+
+    0%,
+    80%,
+    100% {
         transform: scale(0.8);
         opacity: 0.5;
     }
+
     40% {
         transform: scale(1.2);
         opacity: 1;
@@ -339,9 +374,12 @@
 }
 
 @keyframes pulse {
-    0%, 100% {
+
+    0%,
+    100% {
         opacity: 0.6;
     }
+
     50% {
         opacity: 1;
     }

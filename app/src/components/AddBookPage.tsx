@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Image as ImageIcon, Upload, FileJson, X as CloseIcon } from 'lucide-react';
+import { ArrowLeft, Image as ImageIcon, Upload, FileJson, X as CloseIcon, Link } from 'lucide-react';
 import styles from './AddBookPage.module.css';
 import { commitBook, BookMetadata } from '../services/huggingface';
 import { ThemeToggle } from './ThemeToggle';
@@ -18,6 +18,7 @@ export const AddBookPage: React.FC = () => {
     const [tagInput, setTagInput] = useState('');
     const [direction, setDirection] = useState<'ltr' | 'rtl'>('rtl');
     const [xId, setXId] = useState('');
+    const [generationUrl, setGenerationUrl] = useState('');
     const [customFolderName, setCustomFolderName] = useState('');
     const [files, setFiles] = useState<File[]>([]);
     const [previews, setPreviews] = useState<string[]>([]);
@@ -50,6 +51,7 @@ export const AddBookPage: React.FC = () => {
             }
             if (data.direction) setDirection(data.direction);
             if (data.x_id) setXId(data.x_id);
+            if (data.generation_url) setGenerationUrl(data.generation_url);
             if (data.folderName) setCustomFolderName(data.folderName);
 
             setShowImport(false);
@@ -96,7 +98,8 @@ export const AddBookPage: React.FC = () => {
                 tags: tags,
                 direction,
                 cover: files[0].name, // Default first image as cover
-                x_id: xId || undefined
+                x_id: xId || undefined,
+                generation_url: generationUrl || undefined
             };
 
             setProgress('Uploading book...');
@@ -150,6 +153,7 @@ export const AddBookPage: React.FC = () => {
                 }
                 if (data.direction) setDirection(data.direction);
                 if (data.x_id) setXId(data.x_id);
+                if (data.generation_url) setGenerationUrl(data.generation_url);
                 if (data.folderName) setCustomFolderName(data.folderName);
 
                 showToast('Metadata loaded from file! Review and click "Apply Metadata" if needed.', 'success');
@@ -280,6 +284,33 @@ export const AddBookPage: React.FC = () => {
                                 placeholder="@username"
                             />
                         </div>
+                    </div>
+
+                    <div className={styles.formGroup}>
+                        <label className={styles.label}>Generation Method URL</label>
+                        <div style={{ position: 'relative' }}>
+                            <input
+                                className={styles.input}
+                                type="url"
+                                value={generationUrl}
+                                onChange={e => setGenerationUrl(e.target.value)}
+                                placeholder="https://..."
+                                style={{ paddingLeft: '40px' }}
+                            />
+                            <Link
+                                size={16}
+                                style={{
+                                    position: 'absolute',
+                                    left: '12px',
+                                    top: '50%',
+                                    transform: 'translateY(-50%)',
+                                    color: 'var(--text-secondary)'
+                                }}
+                            />
+                        </div>
+                        <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                            Link to the tool or prompt used to generate this manga.
+                        </span>
                     </div>
 
                     <div className={styles.formGroup}>

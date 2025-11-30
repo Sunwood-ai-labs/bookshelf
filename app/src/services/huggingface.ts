@@ -13,6 +13,7 @@ export interface BookMetadata {
     direction?: 'ltr' | 'rtl';
     cover?: string;
     x_id?: string;
+    generation_url?: string;
 }
 
 export interface BookEntry {

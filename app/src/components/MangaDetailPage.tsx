@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, BookOpen, Home } from 'lucide-react';
+import { ArrowLeft, BookOpen, Home, Wand2 } from 'lucide-react';
 import styles from './MangaDetailPage.module.css';
 import { useBookshelf } from '../hooks/useBookshelf';
 import { BookReader } from './BookReader';
@@ -121,6 +121,17 @@ export const MangaDetailPage: React.FC = () => {
                                     className={styles.xIcon}
                                 />
                                 {book.metadata.x_id}
+                            </a>
+                        )}
+                        {book.metadata?.generation_url && (
+                            <a
+                                href={book.metadata.generation_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className={styles.generationLink}
+                            >
+                                <Wand2 size={20} />
+                                Generation Method
                             </a>
                         )}
                         {book.metadata?.description && (
